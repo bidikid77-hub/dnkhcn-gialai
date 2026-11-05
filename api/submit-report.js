@@ -61,7 +61,7 @@ module.exports = async (req, res) => {
         });
       }
 
-      if (!body.enterprise || !body.enterprise.enterpriseCode) {
+      if (!body?.enterprise?.enterpriseCode) {
         return res.status(400).json({ success: false, error: 'Thiếu thông tin doanh nghiệp bắt buộc' });
       }
 
@@ -85,13 +85,9 @@ module.exports = async (req, res) => {
 
       const saved = saveSubmissions(list);
       if (!saved) {
-        // Vẫn trả về mã biên nhận kèm ghi chú lưu phiên
-        return res.status(200).json({
-          success: true,
-          message: 'Tiếp nhận báo cáo trực tuyến thành công!',
-          receipt_code: submission.receipt_code,
-          received_at: submission.received_at,
-          mode: 'session'
+        return res.status(500).json({
+          success: false,
+          error: 'Hệ thống máy chủ tạm thời không thể ghi nhận báo cáo. Vui lòng thử lại sau.'
         });
       }
 
