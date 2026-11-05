@@ -49,6 +49,7 @@ const server = http.createServer(async (req, res) => {
     const apiFile = path.join(DIR, 'api', `${apiName}.js`);
     if (fs.existsSync(apiFile)) {
       try {
+        delete require.cache[require.resolve(apiFile)];
         const handler = require(apiFile);
         res.status = function(code) {
           this.statusCode = code;

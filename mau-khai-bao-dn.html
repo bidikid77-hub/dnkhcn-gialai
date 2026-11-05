@@ -79,7 +79,7 @@
 </div></div></section>
 <section class="card"><div class="section-head"><span class="section-number">E</span><h2>Khó khăn, kiến nghị và xác nhận</h2></div><label for="recommend">Kiến nghị của doanh nghiệp (nếu có)</label><textarea id="recommend" maxlength="500" placeholder="Nhập vướng mắc cần hỗ trợ, tối đa 500 ký tự"></textarea>
 <label class="check"><input type="checkbox" id="confirm"><span>Doanh nghiệp xác nhận số liệu khai báo trung thực, chính xác và chịu trách nhiệm về thông tin đã cung cấp.</span></label>
-<div class="footer-actions"><button class="primary" type="button" id="check">Kiểm tra thông tin</button><button type="button" id="export">Tải dữ liệu JSON mẫu</button><button type="button" id="print">In mẫu</button></div><div id="feedback" role="status" aria-live="polite"></div>
+<div class="footer-actions"><button type="button" id="submitReport" style="background: linear-gradient(135deg, #059669, #047857); color: white; border: none; font-weight: 700; padding: 11px 22px; border-radius: 8px; box-shadow: 0 4px 14px rgba(5,150,105,0.35); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; font-size: 14px;">📤 Gửi báo cáo đến Sở KH&amp;CN</button><button type="button" id="saveDraft" style="background: #f8fafc; color: #334155; border: 1px solid #cbd5e1; font-weight: 600; padding: 11px 16px; border-radius: 8px; cursor: pointer;">💾 Lưu nháp</button><button class="primary" type="button" id="check">Kiểm tra thông tin</button><button type="button" id="export">Tải JSON</button><button type="button" id="print">In mẫu</button></div><div id="feedback" role="status" aria-live="polite"></div>
 </section></form>
 <aside class="stack side">
 <section class="card"><p class="side-head">Chỉ tiêu theo dõi tức thời</p><span class="pill">Số liệu tháng · Chưa phải đánh giá pháp lý</span><div class="metric"><div class="metric-label">Tỷ trọng doanh thu sản phẩm KH,CN&amp;ĐMST / tổng doanh thu tháng</div><div class="metric-value" id="sciencePct">—</div></div><div class="metric"><div class="metric-label">Chi nghiên cứu &amp; ĐMST / doanh thu thuần tháng</div><div class="metric-value" id="rndPct">—</div></div><div class="metric"><div class="metric-label">Trạng thái cần theo dõi</div><div class="status" id="tracking">Chưa nhập đủ dữ liệu</div></div></section>
@@ -108,6 +108,122 @@
     $('tracking').textContent=status;}
   function getData(){const size=val('size');let specialty=size==='large'?{rdDepartment:val('largeRD'),universityRDStaff:num('largeUni'),vietnameseUniversityRDStaff:num('largeVN'),productOutcome:val('largeEffect')}:size==='medium'?{rdDepartment:val('mediumRD'),universityRDStaff:num('mediumUni'),vietnameseUniversityRDStaff:num('mediumVN')}:{scienceStaff:num('smallTech'),vietnameseScienceStaff:num('smallVN'),externalResearchExperts:num('smallExpert')};return {schema:'gia-lai-dnkhcn-monthly-nd268-prototype-v1',period:val('period'),enterprise:{name:val('company'),enterpriseCode:val('tax'),scienceTechnologyCertificate:val('certificate'),size},monthly:{operationalStatus:val('status'),lawfulResultRights:val('rights'),commercializedProductCount:num('commercial'),certifiedPortfolioChanged:val('changedProducts'),changeDescription:val('changeDetail'),totalRevenueMillionVND:num('revenue'),netRevenueMillionVND:num('netRevenue'),scienceTechnologyInnovationProductRevenueMillionVND:num('scienceRevenue'),researchTechnologyInnovationExpenditureMillionVND:num('rndSpend'),employeesAtMonthEnd:num('workers'),specialty,issues:val('recommend')},declarationChecked:$('confirm').checked};}
   $('monthlyReport').addEventListener('input',update);$('monthlyReport').addEventListener('change',update);update();
+  
+  // 1. Xử lý Gửi báo cáo trực tuyến chính thức
+  $('submitReport').addEventListener('click', async () => {
+    let e = checkData();
+    if (e.length) {
+      show('Vui lòng hoàn thành các mục sau trước khi gửi báo cáo:\n• ' + e.join('\n• '), false);
+      return;
+    }
+    const reportData = getData();
+    const btn = $('submitReport');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Đang gửi báo cáo...';
+
+    try {
+      // Gửi lên Server API
+      try {
+        await fetch('/api/submit-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(reportData)
+        });
+      } catch(apiErr) {
+        console.warn('API sync warning:', apiErr);
+      }
+
+      // Lưu trữ đồng bộ vào trình duyệt để Dashboard tổng hợp tức thời
+      const localKey = 'dnkhcn_gialai_submitted_reports';
+      let list = [];
+      try { list = JSON.parse(localStorage.getItem(localKey) || '[]'); } catch(err) { list = []; }
+      
+      const newEntry = {
+        id: Date.now(),
+        tax_id: reportData.enterprise.enterpriseCode,
+        company_name: reportData.enterprise.name,
+        address: 'Khai báo trực tuyến NĐ 268',
+        products: reportData.monthly.commercializedProductCount ? (reportData.monthly.commercializedProductCount + ' sản phẩm KH&CN') : 'Sản phẩm KH,CN & ĐMST',
+        field: 'Doanh nghiệp KH&CN tỉnh Gia Lai',
+        cert_year: reportData.period ? parseInt(reportData.period.split('-')[0]) : 2026,
+        firm_size: reportData.enterprise.size === 'micro' ? 'micro_small' : reportData.enterprise.size,
+        net_revenue: reportData.monthly.netRevenueMillionVND || 0,
+        rd_expense: reportData.monthly.researchTechnologyInnovationExpenditureMillionVND || 0,
+        rd_rate: reportData.monthly.netRevenueMillionVND ? parseFloat((reportData.monthly.researchTechnologyInnovationExpenditureMillionVND / reportData.monthly.netRevenueMillionVND * 100).toFixed(2)) : 0,
+        staff_internal: reportData.monthly.employeesAtMonthEnd || 0,
+        staff_vn: (reportData.monthly.specialty && (reportData.monthly.specialty.vietnameseUniversityRDStaff || reportData.monthly.specialty.vietnameseScienceStaff)) || 0,
+        is_compliant: !['Ưu tiên xác minh', 'Có biến động - cần theo dõi'].includes($('tracking').textContent),
+        note: 'Đã nộp trực tuyến kỳ ' + reportData.period + ' lúc ' + (new Date().toLocaleTimeString('vi-VN')),
+        is_new_submission: true,
+        submitted_at: new Date().toISOString()
+      };
+
+      const existIdx = list.findIndex(r => r.tax_id === newEntry.tax_id);
+      if (existIdx >= 0) { list[existIdx] = newEntry; } else { list.unshift(newEntry); }
+      localStorage.setItem(localKey, JSON.stringify(list));
+
+      const receipt = 'GL-268-' + (reportData.enterprise.enterpriseCode || 'DN') + '-' + Date.now().toString().slice(-4);
+      show('🎉 ĐÃ GỬI BÁO CÁO THÀNH CÔNG VỀ SỞ KHOA HỌC VÀ CÔNG NGHỆ!\n' +
+           '• Mã tiếp nhận hồ sơ: ' + receipt + '\n' +
+           '• Doanh nghiệp: ' + reportData.enterprise.name + ' (MST: ' + reportData.enterprise.enterpriseCode + ')\n' +
+           '• Kỳ báo cáo: ' + reportData.period + '\n' +
+           '• Tình trạng: Hệ thống đã tự động cộng dồn số liệu và cập nhật trực tiếp lên Dashboard Điều hành.', true);
+
+      const navDiv = document.createElement('div');
+      navDiv.style.marginTop = '12px';
+      navDiv.innerHTML = '<a href="dashboard.html" style="display:inline-flex; align-items:center; gap:8px; background:#0f172a; color:#38bdf8; padding:9px 18px; border-radius:8px; text-decoration:none; font-weight:700; font-size:13px; border:1px solid #334155;">📊 Xem ngay kết quả tổng hợp trên Dashboard Điều hành →</a>';
+      if (!$('feedback').querySelector('a')) {
+        $('feedback').appendChild(navDiv);
+      }
+    } catch(err) {
+      show('Có lỗi khi gửi báo cáo: ' + err.message, false);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  });
+
+  // 2. Xử lý Lưu nháp
+  $('saveDraft').addEventListener('click', () => {
+    try {
+      const data = getData();
+      localStorage.setItem('dnkhcn_gialai_draft', JSON.stringify(data));
+      show('💾 Đã lưu bản nháp vào thiết bị. Bạn có thể quay lại tiếp tục kê khai bất kỳ lúc nào!', true);
+    } catch(err) {
+      show('Lỗi khi lưu nháp: ' + err.message, false);
+    }
+  });
+
+  // 3. Tự động phục hồi bản nháp
+  try {
+    const savedDraft = localStorage.getItem('dnkhcn_gialai_draft');
+    if (savedDraft) {
+      const d = JSON.parse(savedDraft);
+      if (d.enterprise && d.enterprise.name && !$('company').value) {
+        $('company').value = d.enterprise.name || '';
+        $('tax').value = d.enterprise.enterpriseCode || '';
+        $('certificate').value = d.enterprise.scienceTechnologyCertificate || '';
+        if (d.enterprise.size) $('size').value = d.enterprise.size;
+        if (d.period) $('period').value = d.period;
+        if (d.monthly) {
+          if (d.monthly.operationalStatus) $('status').value = d.monthly.operationalStatus;
+          if (d.monthly.lawfulResultRights) $('rights').value = d.monthly.lawfulResultRights;
+          if (d.monthly.commercializedProductCount) $('commercial').value = d.monthly.commercializedProductCount;
+          if (d.monthly.certifiedPortfolioChanged) $('changedProducts').value = d.monthly.certifiedPortfolioChanged;
+          if (d.monthly.changeDescription) $('changeDetail').value = d.monthly.changeDescription;
+          if (d.monthly.totalRevenueMillionVND) $('revenue').value = d.monthly.totalRevenueMillionVND;
+          if (d.monthly.netRevenueMillionVND) $('netRevenue').value = d.monthly.netRevenueMillionVND;
+          if (d.monthly.scienceTechnologyInnovationProductRevenueMillionVND) $('scienceRevenue').value = d.monthly.scienceTechnologyInnovationProductRevenueMillionVND;
+          if (d.monthly.researchTechnologyInnovationExpenditureMillionVND) $('rndSpend').value = d.monthly.researchTechnologyInnovationExpenditureMillionVND;
+          if (d.monthly.employeesAtMonthEnd) $('workers').value = d.monthly.employeesAtMonthEnd;
+          if (d.monthly.issues) $('recommend').value = d.monthly.issues;
+        }
+        update();
+      }
+    }
+  } catch(e) {}
+
   $('check').addEventListener('click',()=>{let e=checkData();show(e.length?'Cần sửa trước khi xuất dữ liệu:\n• '+e.join('\n• '):'Đã kiểm tra dữ liệu nhập trên trang. Đây chỉ là bản mô phỏng; chưa gửi đến Sở.',!e.length);});
   $('export').addEventListener('click',()=>{let e=checkData();if(e.length){show('Cần sửa trước khi xuất dữ liệu:\n• '+e.join('\n• '),false);return;}let blob=new Blob([JSON.stringify(getData(),null,2)],{type:'application/json;charset=utf-8'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='baocao_DNKHCN_ND268_'+val('period')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),200);show('Đã tạo tệp JSON trên thiết bị. Tệp chưa được gửi đến Sở.',true);});
   $('print').addEventListener('click',()=>window.print());

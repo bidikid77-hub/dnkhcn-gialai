@@ -1384,8 +1384,36 @@
         const json = await res.json();
         if (json.success) {
           reportsData = json.reports || [];
-          updateKPIs(json.stats);
-          renderCharts(json.stats);
+          
+          // CƠ CHẾ TỔNG HỢP TỰ ĐỘNG: Merge các báo cáo nộp từ trình duyệt (LocalStorage)
+          try {
+            const localKey = 'dnkhcn_gialai_submitted_reports';
+            const localList = JSON.parse(localStorage.getItem(localKey) || '[]');
+            for (const item of localList) {
+              const existIdx = reportsData.findIndex(r => r.tax_id === item.tax_id);
+              if (existIdx >= 0) {
+                reportsData[existIdx] = { ...reportsData[existIdx], ...item, is_new_submission: true };
+              } else {
+                reportsData.unshift({ ...item, is_new_submission: true });
+              }
+            }
+          } catch(e) {}
+
+          // Tính toán lại toàn bộ chỉ số KPI sau khi hợp nhất tự động
+          const totalCount = reportsData.length;
+          const compliantCount = reportsData.filter(r => r.is_compliant !== false).length;
+          const nonCompliantCount = totalCount - compliantCount;
+          const totalRd = reportsData.reduce((sum, r) => sum + (Number(r.rd_expense) || 0), 0);
+          const computedStats = {
+            total: totalCount,
+            compliant_count: compliantCount,
+            non_compliant_count: nonCompliantCount,
+            compliance_rate: (compliantCount / (totalCount || 1) * 100).toFixed(1),
+            total_rd_expense: totalRd
+          };
+
+          updateKPIs(computedStats);
+          renderCharts(computedStats);
           renderTable();
         }
       } catch (err) {
@@ -1509,7 +1537,10 @@
           <tr class="hover:bg-slate-50 transition border-b border-slate-100">
             <td class="p-3 text-center font-bold text-slate-500">${r.id || idx + 1}</td>
             <td class="p-3.5 max-w-xs">
-              <div class="font-bold text-slate-900 leading-snug">${r.company_name}</div>
+              <div class="font-bold text-slate-900 leading-snug flex items-center gap-1.5 flex-wrap">
+                <span>${r.company_name}</span>
+                ${r.is_new_submission ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">⚡ Mới nộp NĐ 268</span>' : ''}
+              </div>
               <div class="text-[11px] text-slate-500 mt-1 flex items-start gap-1">
                 <span>📍</span> <span>${r.address || "Chưa cập nhật"}</span>
               </div>
