@@ -15,7 +15,15 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml'
 };
 
-const server = http.createServer((req, res) => {
+const ALLOWED_STATIC = new Set([
+  'index.html',
+  'dashboard.html',
+  'mau-khai-bao-dn.html',
+  'manifest.json',
+  'sw.js'
+]);
+
+const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
@@ -25,7 +33,14 @@ const server = http.createServer((req, res) => {
     return res.end();
   }
 
-  const parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
+  } catch (err) {
+    res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return res.end('400 Bad Request');
+  }
+
   let pathname = parsedUrl.pathname;
 
   // Route API
@@ -35,31 +50,43 @@ const server = http.createServer((req, res) => {
     if (fs.existsSync(apiFile)) {
       try {
         const handler = require(apiFile);
-        // Polyfill express/vercel helper for standard http response
         res.status = function(code) {
           this.statusCode = code;
           return this;
         };
         res.json = function(data) {
-          this.setHeader('Content-Type', 'application/json; charset=utf-8');
-          this.end(JSON.stringify(data));
+          if (!this.headersSent) {
+            this.setHeader('Content-Type', 'application/json; charset=utf-8');
+            this.end(JSON.stringify(data));
+          }
           return this;
         };
-        return handler(req, res);
+        return await handler(req, res);
       } catch (e) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: e.message }));
+        if (!res.headersSent) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: e.message }));
+        }
+        return;
       }
     }
   }
 
   // Rewrites
   if (pathname === '/' || pathname === '') {
-    pathname = '/index.html';
+    pathname = 'index.html';
   } else if (pathname === '/dashboard') {
-    pathname = '/dashboard.html';
+    pathname = 'dashboard.html';
   } else if (pathname === '/mau-khai-bao-dn') {
-    pathname = '/index.html';
+    pathname = 'index.html';
+  } else {
+    pathname = pathname.replace(/^\/+/, '');
+  }
+
+  // Whitelist static check
+  if (!ALLOWED_STATIC.has(pathname)) {
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return res.end('404 Not Found');
   }
 
   const filePath = path.join(DIR, pathname);
