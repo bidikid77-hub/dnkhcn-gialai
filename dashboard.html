@@ -91,7 +91,7 @@
         <button id="pwa-install-btn" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold rounded-lg shadow-sm transition">
           📲 Cài đặt App
         </button>
-        <a href="/" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition">
+        <a href="index.html" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition">
           <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
           Mẫu khai báo DN
         </a>
@@ -1197,6 +1197,9 @@
       }
     }
 
+    
+    const API_BASE = (typeof window !== 'undefined' && window.location.protocol === 'file:') ? 'https://web-ebon-mu-96.vercel.app' : '';
+
     // Dữ liệu Tổng quan Dashboard
     let overviewDataCache = null;
     let overviewFundsChartInstance = null;
@@ -1204,7 +1207,7 @@
 
     async function loadOverviewData() {
       try {
-        const res = await fetch("/api/overview");
+        const res = await fetch(API_BASE + "/api/overview");
         const json = await res.json();
         if (json.success && json.summary) {
           overviewDataCache = json.summary;
@@ -1377,7 +1380,7 @@
 
     async function loadData() {
       try {
-        const res = await fetch("/api/reports");
+        const res = await fetch(API_BASE + "/api/reports");
         const json = await res.json();
         if (json.success) {
           reportsData = json.reports || [];
@@ -1609,7 +1612,7 @@
 
     async function loadOrgData() {
       try {
-        const res = await fetch("/api/organizations");
+        const res = await fetch(API_BASE + "/api/organizations");
         const json = await res.json();
         if (json.success) {
           orgsData = json.organizations || [];
@@ -1792,7 +1795,7 @@
 
     async function loadSupportData() {
       try {
-        const res = await fetch('/api/support');
+        const res = await fetch(API_BASE + "/api/support");
         const json = await res.json();
         if (json.success) {
           fullSupportResponse = json;
