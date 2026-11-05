@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Hệ Thống Quản Lý & Điều Hành Khoa Học Và Công Nghệ</title>
+  
+  <!-- PWA & Mobile Meta -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0369a1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="QL KH&CN">
+
+  <!-- Chart.js & Tailwind CSS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gov: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    html {
+      font-size: 15px; /* Kích thước cân đối vừa vặn, không bị tràn màn hình */
+    }
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background-color: #f8fafc;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    
+    /* Ẩn triệt để thanh cuộn (scrollbar) nhưng vẫn giữ tính thẩm mỹ */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .tab-btn {
+      font-size: 0.88rem !important;
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+    .tab-btn.active {
+      background-color: #ffffff;
+      color: #0369a1;
+      border-bottom: 2px solid #0284c7;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col pb-12">
+
+  <!-- HEADER THANH ĐIỀU HÀNH CHÍNH -->
+  <header class="bg-gov-900 text-white border-b border-gov-800 sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-sm">
+          ⚛️
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-bold uppercase tracking-wider text-slate-50">Cổng Quản Lý & Điều Hành KH&CN</h1>
+            <span class="hidden sm:inline-block px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold rounded-full">Trực tuyến</span>
+          </div>
+          <p class="text-[11px] text-slate-300">Trung tâm dữ liệu, giám sát doanh nghiệp và theo dõi chính sách</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="pwa-install-btn" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold rounded-lg shadow-sm transition">
+          📲 Cài đặt App
+        </button>
+        <a href="/" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition">
+          <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+          Mẫu khai báo DN
+        </a>
+        <button onclick="exportCurrentTab()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          Xuất Excel
+        </button>
+      </div>
+    </div>
+
+    <!-- THANH 6 TAB ĐIỀU HƯỚNG CHUYÊN TRÁCH - GỌN GÀNG VỪA ĐỦ, KHÔNG THANH TRƯỢT -->
+    <div class="bg-gov-800/90 border-t border-gov-700/80">
+      <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 flex items-center justify-between no-scrollbar overflow-x-auto py-1">
+        <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="tab-btn active rounded-t-lg text-slate-300 hover:text-white font-medium whitespace-nowrap transition flex items-center gap-1.5">
+          🧭 Dashboard chung
+        </button>
+        <button onclick="switchTab('tab-enterprise')" id="btn-tab-enterprise" class="tab-btn rounded-t-lg text-slate-300 hover:text-white font-medium whitespace-nowrap transition flex items-center gap-1.5">
+          🏢 Doanh nghiệp KH&CN
+        </button>
+        <button onclick="switchTab('tab-organization')" id="btn-tab-organization" class="tab-btn rounded-t-lg text-slate-300 hover:text-white font-medium whitespace-nowrap transition flex items-center gap-1.5">
+          🏛️ Tổ chức KH&CN
+        </button>
+        <button onclick="switchTab('tab-policies')" id="btn-tab-policies" class="tab-btn rounded-t-lg text-slate-300 hover:text-white font-medium whitespace-nowrap transition flex items-center gap-1.5">
+          🎁 Chính sách hỗ trợ KH&CN
+        </button>
+        <button onclick="switchTab('tab-stats')" id="btn-tab-stats" class="tab-btn rounded-t-lg text-slate-300 hover:text-white font-medium whitespace-nowrap transition flex items-center gap-1.5">
+          📊 Thống kê chính sách đã thực hiện
+        </button>
+        <button onclick="switchTab('tab-database')" id="btn-tab-database" class="tab-btn rounded-t-lg text-slate-300 hover:text-white font-medium whitespace-nowrap transition flex items-center gap-1.5">
+          🗄️ Cơ sở dữ liệu
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- NỘI DUNG CHÍNH CÁC PHÂN HỆ -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
+
+    <!-- ==================== TAB 0: DASHBOARD CHUNG TỔNG HỢP ==================== -->
+    <div id="tab-overview" class="tab-content space-y-6">
+      
+      <!-- HEADER ĐIỀU HÀNH CHUYÊN NGHIỆP: QUẢN TRỊ & THỜI GIAN THỰC -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-white via-slate-50/50 to-sky-50/30">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 border border-sky-200">
+              <span class="w-2 h-2 rounded-full bg-sky-600 animate-pulse"></span>
+              Cơ sở dữ liệu thời gian thực
+            </span>
+            <span class="text-xs text-slate-400">|</span>
+            <span class="text-xs font-medium text-slate-500">Sở Khoa học và Công nghệ tỉnh Gia Lai</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            Trung tâm Điều hành & Giám sát Khoa học - Công nghệ
+          </h2>
+          <p class="text-xs text-slate-600 max-w-2xl">
+            Tổng hợp dữ liệu đồng bộ 31 Doanh nghiệp KH&CN, 57 Tổ chức KH&CN và tiến độ giải ngân 1.189.000.000 đồng kinh phí hỗ trợ qua 4 đợt phê duyệt theo Nghị quyết HĐND tỉnh và Quyết định UBND tỉnh.
+          </p>
+        </div>
+
+        <!-- Các nút tác vụ nhanh -->
+        <div class="flex items-center gap-2.5 self-start md:self-center shrink-0">
+          <button onclick="loadOverviewData()" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 shadow-sm transition flex items-center gap-1.5 hover:shadow">
+            🔄 Làm mới
+          </button>
+          <button onclick="exportCurrentTab()" class="px-3.5 py-2 bg-sky-700 hover:bg-sky-800 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-1.5 hover:shadow">
+            📑 Xuất báo cáo tổng hợp
+          </button>
+        </div>
+      </div>
+
+      <!-- 3 KHỐI THẺ KPI CỐT LÕI - THIẾT KẾ EXECUTIVE METRICS CARD CAO CẤP -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        
+        <!-- CARD 1: DOANH NGHIỆP KH&CN -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 hover:shadow-md transition relative flex flex-col justify-between overflow-hidden group">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-sky-500 to-blue-600"></div>
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-800 bg-sky-50 px-2.5 py-1 rounded-md border border-sky-100 flex items-center gap-1.5">
+                🏢 Nhóm Doanh nghiệp KH&CN
+              </span>
+              <span class="text-xs font-bold text-slate-400 group-hover:text-sky-600 transition">Mục 01 &rarr;</span>
+            </div>
+            
+            <div class="mt-4 flex items-baseline gap-2">
+              <h3 id="ov-ent-total" class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">31</h3>
+              <span class="text-xs font-bold text-slate-500">doanh nghiệp</span>
+            </div>
+
+            <!-- Chỉ số chi tiết bên trong -->
+            <div class="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
+              <div class="flex justify-between items-center bg-slate-50/70 px-2.5 py-1.5 rounded-lg">
+                <span class="text-slate-600 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Đủ điều kiện duy trì (R&D):
+                </span>
+                <span class="font-extrabold text-emerald-700" id="ov-ent-compliant">26 DN (83.9%)</span>
+              </div>
+              <div class="flex justify-between items-center bg-slate-50/70 px-2.5 py-1.5 rounded-lg">
+                <span class="text-slate-600 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span> Cần rà soát bổ sung R&D:
+                </span>
+                <span class="font-extrabold text-amber-700" id="ov-ent-non-compliant">5 DN (16.1%)</span>
+              </div>
+              <div class="flex justify-between items-center px-1 text-slate-500 text-[11px] pt-0.5">
+                <span>Tổng chi đầu tư R&D:</span>
+                <span class="font-bold text-sky-800" id="ov-ent-rd">67.878 triệu đ</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="switchTab('tab-enterprise')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-sky-50 text-sky-800 hover:text-sky-900 text-xs font-bold rounded-xl border border-slate-200/80 transition text-center flex items-center justify-center gap-1">
+            Tra cứu chi tiết 31 Doanh nghiệp &rarr;
+          </button>
+        </div>
+
+        <!-- CARD 2: TỔ CHỨC KH&CN -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 hover:shadow-md transition relative flex flex-col justify-between overflow-hidden group">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-600"></div>
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 flex items-center gap-1.5">
+                🏛️ Nhóm Tổ chức KH&CN
+              </span>
+              <span class="text-xs font-bold text-slate-400 group-hover:text-emerald-600 transition">Mục 02 &rarr;</span>
+            </div>
+            
+            <div class="mt-4 flex items-baseline gap-2">
+              <h3 id="ov-org-total" class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">57</h3>
+              <span class="text-xs font-bold text-slate-500">tổ chức</span>
+            </div>
+
+            <!-- Chỉ số chi tiết bên trong -->
+            <div class="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
+              <div class="flex justify-between items-center bg-slate-50/70 px-2.5 py-1.5 rounded-lg">
+                <span class="text-slate-600 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Đang hoạt động ổn định:
+                </span>
+                <span class="font-extrabold text-emerald-700" id="ov-org-active">26 tổ chức</span>
+              </div>
+              <div class="flex justify-between items-center bg-slate-50/70 px-2.5 py-1.5 rounded-lg">
+                <span class="text-slate-600 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span> Sắp xếp chính quyền 2 cấp:
+                </span>
+                <span class="font-extrabold text-amber-700" id="ov-org-closed">24 trung tâm</span>
+              </div>
+              <div class="flex justify-between items-center px-1 text-slate-500 text-[11px] pt-0.5">
+                <span>Giải thể / Thu hồi GCN:</span>
+                <span class="font-bold text-rose-700" id="ov-org-other">7 tổ chức</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="switchTab('tab-organization')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-emerald-50 text-emerald-800 hover:text-emerald-900 text-xs font-bold rounded-xl border border-slate-200/80 transition text-center flex items-center justify-center gap-1">
+            Tra cứu danh bạ 57 Tổ chức &rarr;
+          </button>
+        </div>
+
+        <!-- CARD 3: KINH PHÍ ĐÃ HỖ TRỢ -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 hover:shadow-md transition relative flex flex-col justify-between overflow-hidden group">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 to-indigo-600"></div>
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-indigo-900 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100 flex items-center gap-1.5">
+                💰 Kinh phí đã hỗ trợ (NQ HĐND)
+              </span>
+              <span class="text-xs font-bold text-slate-400 group-hover:text-indigo-600 transition">Mục 03 &rarr;</span>
+            </div>
+            
+            <div class="mt-4 flex items-baseline gap-2">
+              <h3 id="ov-support-total" class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">1.189</h3>
+              <span id="ov-support-unit" class="text-xs font-bold text-slate-500">triệu đồng</span>
+            </div>
+
+            <!-- Chỉ số chi tiết bên trong -->
+            <div class="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
+              <div class="flex justify-between items-center bg-slate-50/70 px-2.5 py-1.5 rounded-lg">
+                <span class="text-slate-600 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-sky-500"></span> Đợt 1 & 2:
+                </span>
+                <span class="font-extrabold text-slate-800" id="ov-support-b1">989 triệu đ (28 ĐV)</span>
+              </div>
+              <div class="flex justify-between items-center bg-slate-50/70 px-2.5 py-1.5 rounded-lg">
+                <span class="text-slate-600 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Đợt 3 & 4 (Mới):
+                </span>
+                <span class="font-extrabold text-emerald-700" id="ov-support-b2">200 triệu đ (12 ĐV)</span>
+              </div>
+              <div class="flex justify-between items-center px-1 text-slate-500 text-[11px] pt-0.5">
+                <span>Tổng đối tượng thụ hưởng:</span>
+                <span class="font-bold text-indigo-800" id="ov-support-recipients">40 tổ chức, cá nhân</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="switchTab('tab-stats')" class="mt-4 w-full py-2 bg-slate-50 hover:bg-indigo-50 text-indigo-900 hover:text-indigo-950 text-xs font-bold rounded-xl border border-slate-200/80 transition text-center flex items-center justify-center gap-1">
+            Xem thống kê chi tiết theo bộ lọc &rarr;
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 2 BIỂU ĐỒ TRỰC QUAN HÓA CAO CẤP -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- BIỂU ĐỒ 1: CƠ CẤU KINH PHÍ HỖ TRỢ THEO NHÓM CHÍNH SÁCH -->
+        <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b pb-3.5">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                <span>📊</span> Cơ cấu phân bổ 1.189.000.000 đ kinh phí hỗ trợ
+              </h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">Phân theo 4 nhóm chính sách KH&CN đã thực hiện lũy kế qua 4 đợt (40 đối tượng)</p>
+            </div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-sky-50 text-sky-800 border border-sky-200">
+              NQ 10/2026 & QĐ 454
+            </span>
+          </div>
+
+          <div class="h-64 flex items-center justify-center relative">
+            <canvas id="chart-overview-funds"></canvas>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5 pt-3 border-t border-slate-100 text-xs text-slate-700">
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50/80">
+              <span class="w-3 h-3 rounded-full bg-blue-600 shrink-0"></span>
+              <span class="truncate">DN KH&CN: <strong>503 tr (42.3%)</strong></span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50/80">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></span>
+              <span class="truncate">Hệ thống ISO: <strong>453 tr (38.1%)</strong></span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50/80">
+              <span class="w-3 h-3 rounded-full bg-amber-500 shrink-0"></span>
+              <span class="truncate">Bài báo quốc tế: <strong>170 tr (14.3%)</strong></span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50/80">
+              <span class="w-3 h-3 rounded-full bg-purple-500 shrink-0"></span>
+              <span class="truncate">Sở hữu trí tuệ: <strong>63 tr (5.3%)</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BIỂU ĐỒ 2: CƠ CẤU VẬN HÀNH 88 CHỦ THỂ KH&CN TỈNH GIA LAI -->
+        <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b pb-3.5">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+                <span>⚖️</span> Tình trạng vận hành 88 Chủ thể KH&CN trên địa bàn
+              </h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">So sánh tương quan giữa Doanh nghiệp và Tổ chức KH&CN</p>
+            </div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
+              Toàn tỉnh Gia Lai
+            </span>
+          </div>
+
+          <div class="h-64 flex items-center justify-center relative">
+            <canvas id="chart-overview-entities"></canvas>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5 pt-3 border-t border-slate-100 text-xs text-slate-700">
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50/80">
+              <span class="w-3 h-3 rounded-full bg-blue-600 shrink-0"></span>
+              <span class="truncate">Doanh nghiệp KH&CN: <strong>31 DN</strong></span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50/80">
+              <span class="w-3 h-3 rounded-full bg-emerald-600 shrink-0"></span>
+              <span class="truncate">Tổ chức hoạt động: <strong>26 ĐV</strong></span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50/80">
+              <span class="w-3 h-3 rounded-full bg-amber-500 shrink-0"></span>
+              <span class="truncate">Sắp xếp CQ 2 cấp: <strong>24 TT</strong></span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50/80">
+              <span class="w-3 h-3 rounded-full bg-slate-500 shrink-0"></span>
+              <span class="truncate">Giải thể / Khác: <strong>7 ĐV</strong></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BẢNG TỔNG HỢP NHIỆM VỤ ĐIỀU HÀNH & KẾT NỐI HỆ THỐNG BOT/MINIAPP -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        <!-- CỘT 1: NHIỆM VỤ TRỌNG TÂM DOANH NGHIỆP -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-3">
+          <div class="flex items-center gap-2 text-sky-800 font-bold text-xs uppercase tracking-wide">
+            <span>🏢</span> Quản trị Doanh nghiệp KH&CN
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Giám sát duy trì điều kiện đối với <strong>31 DN</strong>. Đặc biệt đôn đốc 05 doanh nghiệp có doanh thu KH&CN tiệm cận mức tối thiểu để hoàn thiện báo cáo tài chính kiểm toán trước kỳ đánh giá định kỳ.
+          </p>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span class="text-slate-500">Tỷ lệ đạt chuẩn:</span>
+            <span class="font-extrabold text-emerald-700">83.9% (26/31 DN)</span>
+          </div>
+        </div>
+
+        <!-- CỘT 2: QUẢN TRỊ TỔ CHỨC & SẮP XẾP BỘ MÁY -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-3">
+          <div class="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wide">
+            <span>🏛️</span> Rà soát Tổ chức KH&CN
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Hoàn thiện hồ sơ cập nhật trạng thái pháp lý cho <strong>24 Trung tâm Dịch vụ Nông nghiệp</strong> cấp huyện dừng hoạt động do sắp xếp chính quyền địa phương 2 cấp, hỗ trợ 26 tổ chức tiếp tục phát huy năng lực.
+          </p>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span class="text-slate-500">Đang hoạt động:</span>
+            <span class="font-extrabold text-emerald-700">45.6% (26/57 TC)</span>
+          </div>
+        </div>
+
+        <!-- CỘT 3: TIẾN ĐỘ THI HÀNH CHÍNH SÁCH -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-3">
+          <div class="flex items-center gap-2 text-indigo-900 font-bold text-xs uppercase tracking-wide">
+            <span>🎁</span> Tiến độ triển khai Chính sách
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Đã hoàn tất chi trả <strong>1.189.000.000 đồng</strong> qua 4 đợt cho 40 đối tượng (bổ sung QĐ 303, 304, 305 và QĐ 338). Tiếp tục thẩm định các hồ sơ đổi mới công nghệ và phát triển tài sản trí tuệ.
+          </p>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span class="text-slate-500">Số lượt phê duyệt:</span>
+            <span class="font-extrabold text-indigo-800">40 lượt nhận (4 đợt)</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB 1: DOANH NGHIỆP KH&CN ==================== -->
+    <div id="tab-enterprise" class="tab-content hidden space-y-6">
+      <!-- 4 Thẻ KPI Doanh nghiệp -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Tổng doanh nghiệp nộp</div>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <span id="kpi-total" class="text-2xl sm:text-3xl font-extrabold text-slate-900">--</span>
+            <span class="text-xs text-slate-500 font-medium">doanh nghiệp</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">Kỳ thường niên 2026</p>
+          <div class="absolute right-3 top-3 w-8 h-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center text-base">🏢</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Đạt điều kiện duy trì</div>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <span id="kpi-compliant" class="text-2xl sm:text-3xl font-extrabold text-emerald-600">--</span>
+            <span id="kpi-compliant-rate" class="text-xs font-bold text-emerald-700">(--%)</span>
+          </div>
+          <p class="text-[11px] text-emerald-700 font-medium mt-1">Đủ điều kiện hoạt động</p>
+          <div class="absolute right-3 top-3 w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-base">✅</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Chưa đạt điều kiện</div>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <span id="kpi-non-compliant" class="text-2xl sm:text-3xl font-extrabold text-amber-600">--</span>
+            <span class="text-xs text-amber-700 font-medium">hồ sơ</span>
+          </div>
+          <p class="text-[11px] text-amber-700 font-medium mt-1">Nguy cơ thu hồi GCN</p>
+          <div class="absolute right-3 top-3 w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center text-base">⚠️</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Tổng chi cho R&D</div>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <span id="kpi-total-rd" class="text-2xl sm:text-3xl font-extrabold text-indigo-700">--</span>
+            <span class="text-xs text-indigo-700 font-medium">triệu đ</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">Đầu tư nghiên cứu & ĐMST</p>
+          <div class="absolute right-3 top-3 w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center text-base">🔬</div>
+        </div>
+      </div>
+
+      <!-- Biểu đồ phân bổ -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between border-b pb-2">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">Cơ cấu quy mô doanh nghiệp</h2>
+            <span class="text-[10px] text-slate-400">Luật hỗ trợ DNNVV</span>
+          </div>
+          <div class="h-48 flex items-center justify-center relative">
+            <canvas id="chart-size"></canvas>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 lg:col-span-2">
+          <div class="flex items-center justify-between border-b pb-2">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">Tình hình đáp ứng điều kiện duy trì theo quy mô</h2>
+            <div class="flex items-center gap-3 text-[11px]">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Đạt điều kiện</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Chưa đạt</span>
+            </div>
+          </div>
+          <div class="h-48 relative">
+            <canvas id="chart-compliance"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bảng danh sách Doanh nghiệp & Bộ lọc -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b bg-slate-50/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="relative flex-1 max-w-md">
+            <input type="text" id="search-input" oninput="renderTable()" placeholder="Tìm theo MST, Tên doanh nghiệp, Số GCN..." class="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="filter-year" onchange="renderTable()" class="px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500">
+              <option value="all">Tất cả năm cấp GCN</option>
+              <option value="2013-2018">2013 - 2018</option>
+              <option value="2019-2021">2019 - 2021</option>
+              <option value="2022-2024">2022 - 2024</option>
+              <option value="2025-2026">2025 - 2026</option>
+            </select>
+
+            <select id="filter-size" onchange="renderTable()" class="px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500">
+              <option value="all">Tất cả quy mô</option>
+              <option value="micro_small">Nhỏ & Siêu nhỏ</option>
+              <option value="medium">Doanh nghiệp vừa</option>
+              <option value="large">Doanh nghiệp lớn</option>
+            </select>
+
+            <select id="filter-status" onchange="renderTable()" class="px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500">
+              <option value="all">Tất cả trạng thái</option>
+              <option value="compliant">Đủ điều kiện duy trì</option>
+              <option value="non_compliant">Chưa đạt (Cần đôn đốc)</option>
+            </select>
+
+            <button onclick="broadcastReminder()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+              📢 Đôn đốc Zalo/Tele
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100/90 text-slate-600 uppercase font-semibold text-[11px] border-b border-slate-200">
+                <th class="p-3 text-center w-12">STT</th>
+                <th class="p-3.5">Tên doanh nghiệp & Địa chỉ</th>
+                <th class="p-3.5">Sản phẩm KH&CN được chứng nhận</th>
+                <th class="p-3.5">Lĩnh vực hoạt động</th>
+                <th class="p-3 text-center">Năm cấp</th>
+                <th class="p-3 text-center">Quy mô</th>
+                <th class="p-3 text-center">Đánh giá duy trì</th>
+                <th class="p-3 text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="table-body" class="divide-y divide-slate-100">
+              <tr><td colspan="8" class="p-8 text-center text-slate-400">Đang tải dữ liệu hồ sơ 31 doanh nghiệp...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: TỔ CHỨC KH&CN ==================== -->
+    <div id="tab-organization" class="tab-content hidden space-y-6">
+      <!-- 4 Thẻ KPI Tổ chức KH&CN -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-[11px] font-semibold text-slate-500 uppercase">Tổng tổ chức đã cấp GCN</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <span id="org-kpi-total" class="text-2xl sm:text-3xl font-extrabold text-slate-900">57</span>
+            <span class="text-xs text-slate-500 font-medium">tổ chức</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">Viện, trung tâm, liên hiệp hội</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-[11px] font-semibold text-slate-500 uppercase">Đang hoạt động</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <span id="org-kpi-active" class="text-2xl sm:text-3xl font-extrabold text-emerald-600">28</span>
+            <span class="text-xs text-emerald-700 font-bold">(49.1%)</span>
+          </div>
+          <p class="text-[11px] text-emerald-700 font-medium mt-1">Hiệu lực hoạt động bình thường</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-[11px] font-semibold text-slate-500 uppercase">Không còn hoạt động</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <span id="org-kpi-closed" class="text-2xl sm:text-3xl font-extrabold text-rose-600">23</span>
+            <span class="text-xs text-rose-700 font-medium">đơn vị</span>
+          </div>
+          <p class="text-[11px] text-rose-700 font-medium mt-1">Sắp xếp 2 cấp, giải thể, sáp nhập</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-[11px] font-semibold text-slate-500 uppercase">Cần cấp đổi / Đăng ký mới</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <span id="org-kpi-review" class="text-2xl sm:text-3xl font-extrabold text-amber-600">6</span>
+            <span class="text-xs text-amber-700 font-medium">đơn vị</span>
+          </div>
+          <p class="text-[11px] text-amber-700 font-medium mt-1">Đổi tên mới, đang hoàn thiện HS</p>
+        </div>
+      </div>
+
+      <!-- Bảng Danh bạ Tổ chức KH&CN -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b bg-slate-50/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="relative flex-1 max-w-md">
+            <input type="text" id="org-search-input" oninput="renderOrgTable()" placeholder="Tìm theo tên tổ chức, số GCN, địa chỉ..." class="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <select id="org-filter-status" onchange="renderOrgTable()" class="px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500">
+              <option value="all">Tất cả tình trạng hoạt động</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="review">Cần cấp đổi / Sẽ đăng ký mới</option>
+              <option value="closed">Không còn hoạt động / Giải thể / Sáp nhập</option>
+            </select>
+            <button onclick="exportOrgExcel()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              Xuất Excel Tổ Chức
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100/90 text-slate-600 uppercase font-semibold text-[11px] border-b border-slate-200">
+                <th class="p-3 text-center w-12">TT</th>
+                <th class="p-3.5">Tên tổ chức KH&CN</th>
+                <th class="p-3.5 text-center">Số hiệu GCN</th>
+                <th class="p-3.5 text-center">Ngày cấp</th>
+                <th class="p-3.5">Địa chỉ & Liên hệ</th>
+                <th class="p-3.5 text-center">Tình trạng</th>
+                <th class="p-3.5">Ghi chú theo dõi</th>
+              </tr>
+            </thead>
+            <tbody id="org-table-body" class="divide-y divide-slate-100">
+              <tr><td colspan="7" class="p-8 text-center text-slate-400">Đang tải danh mục tổ chức KH&CN...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: CHÍNH SÁCH HỖ TRỢ KH&CN ==================== -->
+    <div id="tab-policies" class="tab-content hidden space-y-6">
+      <!-- Banner giới thiệu căn cứ pháp lý -->
+      <div class="bg-gradient-to-r from-sky-900 to-indigo-900 text-white p-5 rounded-2xl shadow-sm space-y-2">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-500/20 border border-sky-400/30 text-sky-200 text-xs font-semibold rounded-full">
+          ⚖️ Căn cứ pháp lý hiệu lực từ ngày 04/05/2026
+        </div>
+        <h2 class="text-base sm:text-lg font-bold text-slate-50 uppercase tracking-tight">
+          Nghị quyết số 10/2026/NQ-HĐND của Hội đồng nhân dân tỉnh Gia Lai
+        </h2>
+        <p class="text-xs text-slate-300 leading-relaxed max-w-4xl">
+          Quy định một số chính sách hỗ trợ phát triển khoa học và công nghệ trên địa bàn tỉnh Gia Lai, bao gồm 07 nhóm chính sách trọng điểm hỗ trợ trực tiếp từ nguồn ngân sách sự nghiệp KH&CN của tỉnh.
+        </p>
+      </div>
+
+      <!-- Lưới 7 nhóm chính sách lớn (Đánh số từ 1 đến 7 theo chuẩn thứ tự danh mục, nền style Note màu pastel) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        
+        <!-- Nhóm 01: Đổi mới công nghệ & Chuyển giao công nghệ (Tone Xanh Lam / Sky Note) -->
+        <div class="bg-gradient-to-br from-sky-50/90 to-blue-50/60 p-5 rounded-2xl border border-sky-200/80 shadow-xs space-y-3 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-white/90 text-sky-800 text-[11px] font-extrabold rounded-lg shadow-2xs border border-sky-200/80 flex items-center gap-1.5">
+                <span>⚡</span> Nhóm 01
+              </span>
+              <span class="text-xs font-bold text-sky-900 bg-sky-100/70 px-2 py-0.5 rounded-md">Tối đa 500 triệu đ</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 leading-snug">Đổi mới công nghệ & Chuyển giao công nghệ</h3>
+            <p class="text-xs text-slate-700 leading-relaxed">
+              Hỗ trợ thuê chuyên gia tư vấn làm chủ công nghệ (30%, tối đa 300 tr/năm); Hỗ trợ hợp đồng chuyển giao công nghệ dưới 1 tỷ (30%, tối đa 300 tr) và từ 1 tỷ trở lên (25%, tối đa 500 triệu đ).
+            </p>
+          </div>
+          <div class="pt-3 border-t border-sky-200/60 text-[11px] text-slate-600 flex justify-between items-center">
+            <span class="text-slate-500">Đối tượng: Doanh nghiệp trên địa bàn (Điều 4)</span>
+            <span class="text-sky-700 font-bold cursor-pointer hover:underline hover:text-sky-900" onclick="showPolicyDetail('dieu4')">Xem chi tiết &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Nhóm 02: Hệ thống quản lý tiên tiến & Truy xuất nguồn gốc (Tone Xanh Ngọc / Emerald Note) -->
+        <div class="bg-gradient-to-br from-emerald-50/90 to-teal-50/60 p-5 rounded-2xl border border-emerald-200/80 shadow-xs space-y-3 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-white/90 text-emerald-800 text-[11px] font-extrabold rounded-lg shadow-2xs border border-emerald-200/80 flex items-center gap-1.5">
+                <span>🛡️</span> Nhóm 02
+              </span>
+              <span class="text-xs font-bold text-emerald-900 bg-emerald-100/70 px-2 py-0.5 rounded-md">Tối đa 100 triệu đ</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 leading-snug">Hệ thống quản lý tiên tiến & Truy xuất nguồn gốc</h3>
+            <p class="text-xs text-slate-700 leading-relaxed">
+              ISO 9001, ISO 22000, HACCP, ISO 17025 (25 tr/GCN); ISO 14001, ISO 50001 (40 tr/GCN); ISO 56001 (100 tr/GCN); Tiêu chuẩn Halal (50 tr/GCN); Truy xuất nguồn gốc OCOP 3 sao (50 tr), thông thường (40 tr).
+            </p>
+          </div>
+          <div class="pt-3 border-t border-emerald-200/60 text-[11px] text-slate-600 flex justify-between items-center">
+            <span class="text-slate-500">Đối tượng: DN, HTX, cơ sở SXKD (Điều 5)</span>
+            <span class="text-emerald-700 font-bold cursor-pointer hover:underline hover:text-emerald-900" onclick="showPolicyDetail('dieu5')">Xem chi tiết &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Nhóm 03: Giải thưởng chất lượng Quốc gia & Quốc tế (Tone Hổ Phách / Amber Note) -->
+        <div class="bg-gradient-to-br from-amber-50/90 to-orange-50/60 p-5 rounded-2xl border border-amber-200/80 shadow-xs space-y-3 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-white/90 text-amber-800 text-[11px] font-extrabold rounded-lg shadow-2xs border border-amber-200/80 flex items-center gap-1.5">
+                <span>🏆</span> Nhóm 03
+              </span>
+              <span class="text-xs font-bold text-amber-900 bg-amber-100/70 px-2 py-0.5 rounded-md">Tối đa 80 triệu đ</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 leading-snug">Giải thưởng chất lượng Quốc gia & Quốc tế</h3>
+            <p class="text-xs text-slate-700 leading-relaxed">
+              Giải Bạc Chất lượng Quốc gia (30 triệu đ/giải); Giải Vàng Chất lượng Quốc gia do Thủ tướng quyết định (50 triệu đ/giải); Giải thưởng Chất lượng Quốc tế Châu Á - Thái Bình Dương (80 triệu đ/giải).
+            </p>
+          </div>
+          <div class="pt-3 border-t border-amber-200/60 text-[11px] text-slate-600 flex justify-between items-center">
+            <span class="text-slate-500">Đối tượng: Doanh nghiệp đạt giải (Điều 6)</span>
+            <span class="text-amber-700 font-bold cursor-pointer hover:underline hover:text-amber-900" onclick="showPolicyDetail('dieu6')">Xem chi tiết &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Nhóm 04: Xác lập quyền sở hữu công nghiệp (Tone Chàm / Indigo Note) -->
+        <div class="bg-gradient-to-br from-indigo-50/90 to-blue-50/60 p-5 rounded-2xl border border-indigo-200/80 shadow-xs space-y-3 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-white/90 text-indigo-800 text-[11px] font-extrabold rounded-lg shadow-2xs border border-indigo-200/80 flex items-center gap-1.5">
+                <span>💡</span> Nhóm 04
+              </span>
+              <span class="text-xs font-bold text-indigo-900 bg-indigo-100/70 px-2 py-0.5 rounded-md">Tối đa 40 triệu đ</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 leading-snug">Xác lập quyền sở hữu công nghiệp</h3>
+            <p class="text-xs text-slate-700 leading-relaxed">
+              Trong nước: Sáng chế, GPHI (30 tr/bằng), Kiểu dáng (15 tr), Nhãn hiệu (10 tr); Ra nước ngoài: Sáng chế, GPHI (40 tr/đơn), Kiểu dáng, nhãn hiệu (25 tr/đơn); Tra cứu tính mới thi sáng tạo (20 tr/HĐ).
+            </p>
+          </div>
+          <div class="pt-3 border-t border-indigo-200/60 text-[11px] text-slate-600 flex justify-between items-center">
+            <span class="text-slate-500">Đối tượng: Tổ chức, cá nhân SXKD (Điều 7)</span>
+            <span class="text-indigo-700 font-bold cursor-pointer hover:underline hover:text-indigo-900" onclick="showPolicyDetail('dieu7')">Xem chi tiết &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Nhóm 05: Phát triển Doanh nghiệp KH&CN & Công nghệ cao (Tone Tím Mộng Mơ / Violet Note) -->
+        <div class="bg-gradient-to-br from-violet-50/90 to-purple-50/60 p-5 rounded-2xl border border-violet-200/80 shadow-xs space-y-3 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-white/90 text-violet-800 text-[11px] font-extrabold rounded-lg shadow-2xs border border-violet-200/80 flex items-center gap-1.5">
+                <span>🏢</span> Nhóm 05
+              </span>
+              <span class="text-xs font-bold text-violet-900 bg-violet-100/70 px-2 py-0.5 rounded-md">100.000.000 đ</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 leading-snug">Phát triển Doanh nghiệp KH&CN & Công nghệ cao</h3>
+            <p class="text-xs text-slate-700 leading-relaxed">
+              Hỗ trợ kinh phí trực tiếp một lần cho tổ chức, doanh nghiệp được cấp Giấy chứng nhận lần đầu là Doanh nghiệp khoa học và công nghệ hoặc Doanh nghiệp công nghệ cao.
+            </p>
+          </div>
+          <div class="pt-3 border-t border-violet-200/60 text-[11px] text-slate-600 flex justify-between items-center">
+            <span class="text-slate-500">Hỗ trợ lần đầu thành lập (Điều 8)</span>
+            <span class="text-violet-700 font-bold cursor-pointer hover:underline hover:text-violet-900" onclick="showPolicyDetail('dieu8')">Xem chi tiết &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Nhóm 06: Xúc tiến thị trường KH&CN (Techmart, TechDemo) (Tone Hoa Hồng / Rose Note) -->
+        <div class="bg-gradient-to-br from-rose-50/90 to-pink-50/60 p-5 rounded-2xl border border-rose-200/80 shadow-xs space-y-3 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition duration-200">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-white/90 text-rose-800 text-[11px] font-extrabold rounded-lg shadow-2xs border border-rose-200/80 flex items-center gap-1.5">
+                <span>🌐</span> Nhóm 06
+              </span>
+              <span class="text-xs font-bold text-rose-900 bg-rose-100/70 px-2 py-0.5 rounded-md">Tối đa 60 triệu đ</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 leading-snug">Xúc tiến thị trường KH&CN (Techmart, TechDemo)</h3>
+            <p class="text-xs text-slate-700 leading-relaxed">
+              Hỗ trợ tham gia triển lãm, diễn đàn cung cầu công nghệ: Trong nước (30.000.000 đ/đơn vị/sự kiện/năm); Ở nước ngoài (60.000.000 đ/đơn vị/sự kiện/năm) cho sản phẩm KH&CN nghiệm thu.
+            </p>
+          </div>
+          <div class="pt-3 border-t border-rose-200/60 text-[11px] text-slate-600 flex justify-between items-center">
+            <span class="text-slate-500">Techmart, Techdemo, Hội chợ (Điều 9)</span>
+            <span class="text-rose-700 font-bold cursor-pointer hover:underline hover:text-rose-900" onclick="showPolicyDetail('dieu9')">Xem chi tiết &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Nhóm 07: Bài báo tạp chí quốc tế uy tín (WoS, Scopus) (Tone Xanh Lục Bảo / Cyan Note) -->
+        <div class="bg-gradient-to-br from-cyan-50/90 to-sky-50/60 p-5 rounded-2xl border border-cyan-200/80 shadow-xs space-y-3 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition duration-200 md:col-span-2 lg:col-span-1">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-white/90 text-cyan-800 text-[11px] font-extrabold rounded-lg shadow-2xs border border-cyan-200/80 flex items-center gap-1.5">
+                <span>📚</span> Nhóm 07
+              </span>
+              <span class="text-xs font-bold text-cyan-900 bg-cyan-100/70 px-2 py-0.5 rounded-md">Tối đa 30 triệu đ</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 leading-snug">Bài báo tạp chí quốc tế uy tín (WoS, Scopus)</h3>
+            <p class="text-xs text-slate-700 leading-relaxed">
+              Hỗ trợ trực tiếp cho tác giả công tác tại tỉnh có bài báo tự thân đăng trên tạp chí thuộc Web of Science / Scopus: Xếp hạng Q1 (30 triệu đ/bài), Xếp hạng Q2 (20 triệu đ/bài).
+            </p>
+          </div>
+          <div class="pt-3 border-t border-cyan-200/60 text-[11px] text-slate-600 flex justify-between items-center">
+            <span class="text-slate-500">Tác giả, nhà khoa học tại tỉnh (Điều 10)</span>
+            <span class="text-cyan-700 font-bold cursor-pointer hover:underline hover:text-cyan-900" onclick="showPolicyDetail('dieu10')">Xem chi tiết &rarr;</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== TAB 4: THỐNG KÊ CHÍNH SÁCH ĐÃ THỰC HIỆN ==================== -->
+    <div id="tab-stats" class="tab-content hidden space-y-6">
+      
+      <!-- BỘ LỌC ĐA CHIỀU TRA CỨU & ĐỊNH HƯỚNG CHÍNH SÁCH -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-3">
+        <div class="flex items-center justify-between border-b pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-slate-800">🎯 Tra cứu & Phân nhóm chính sách hỗ trợ</span>
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 font-medium border border-sky-200">Định hướng giám sát đa chiều</span>
+          </div>
+          <button onclick="resetSupportFilters()" class="text-xs text-sky-700 hover:text-sky-900 font-medium hover:underline flex items-center gap-1">
+            <span>🔄</span> Đặt lại bộ lọc
+          </button>
+        </div>
+
+        <!-- 5 Tiêu chí lọc chính -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
+          <!-- 1. Theo Nghị quyết -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">1. Căn cứ Nghị quyết</label>
+            <select id="filter-resolution" onchange="renderSupportTable()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 font-medium text-slate-800">
+              <option value="all">-- Tất cả Nghị quyết --</option>
+              <option value="nq10">Nghị quyết số 10/2026/NQ-HĐND (Mới)</option>
+              <option value="pre_nq10">Nghị quyết số 14/2020 & 33/2023 (Chuyển tiếp)</option>
+              <option value="mixed">Gồm cả NQ 10 và NQ cũ</option>
+            </select>
+          </div>
+
+          <!-- 2. Theo Đợt giải ngân -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">2. Đợt giải ngân</label>
+            <select id="filter-batch" onchange="renderSupportTable()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 font-medium text-slate-800">
+              <option value="all">-- Cả năm 2026 (4 Đợt - 1.189 tr) --</option>
+              <option value="Đợt 1">Đợt 1 năm 2026 (934 triệu đ)</option>
+              <option value="Đợt 2">Đợt 2 năm 2026 (55 triệu đ)</option>
+              <option value="Đợt 3">Đợt 3 năm 2026 (191 triệu đ)</option>
+              <option value="Đợt 4">Đợt 4 năm 2026 (9 triệu đ)</option>
+            </select>
+          </div>
+
+          <!-- 3. Theo Quyết định phê duyệt -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">3. Quyết định phê duyệt</label>
+            <select id="filter-decision" onchange="renderSupportTable()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 font-medium text-slate-800">
+              <option value="all">-- Tất cả Quyết định --</option>
+              <option value="QD_303">QĐ số 303/QĐ-SKHCN (08/10/2026 - Bài báo Q1)</option>
+              <option value="QD_304">QĐ số 304/QĐ-SKHCN (08/10/2026 - Bài báo Q1)</option>
+              <option value="QD_305">QĐ số 305/QĐ-SKHCN (08/10/2026 - HACCP/ISO & Nhãn hiệu)</option>
+              <option value="QD_338">QĐ số 338/QĐ-SKHCN (22/10/2026 - Nhãn hiệu thông thường)</option>
+              <option value="QD_0244">QĐ số 0244/QĐ-SKHCN (21/8/2026)</option>
+              <option value="QD_201">QĐ số 201/QĐ-SKHCN (07/7/2026)</option>
+              <option value="QD_202">QĐ số 202/QĐ-SKHCN (07/7/2026)</option>
+              <option value="QD_236">QĐ số 236/QĐ-SKHCN (14/8/2026)</option>
+              <option value="BATCH1_GENERAL">QĐ phê duyệt Đợt 1 (Tổng hợp 21 ĐV)</option>
+            </select>
+          </div>
+
+          <!-- 4. Theo Mức kinh phí -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">4. Mức kinh phí hỗ trợ</label>
+            <select id="filter-amount" onchange="renderSupportTable()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 font-medium text-slate-800">
+              <option value="all">-- Tất cả mức kinh phí --</option>
+              <option value="100m_plus">Từ 100 triệu đ trở lên (DN KH&CN)</option>
+              <option value="30m_50m">Từ 30 đến 50 triệu đ (Bài báo QT)</option>
+              <option value="25m">Mức 25 triệu đ (ISO/HACCP/17025)</option>
+              <option value="under_20m">Dưới 20 triệu đ (Nhãn hiệu thông thường)</option>
+            </select>
+          </div>
+
+          <!-- 5. Theo Loại giấy tờ / Văn bằng -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">5. Loại hồ sơ / Văn bằng</label>
+            <select id="filter-doctype" onchange="renderSupportTable()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 font-medium text-slate-800">
+              <option value="all">-- Tất cả loại hồ sơ --</option>
+              <option value="cert_enterprise">Giấy chứng nhận DN KH&CN</option>
+              <option value="cert_iso">Giấy chứng nhận ISO / HACCP / 17025</option>
+              <option value="cert_trademark">Văn bằng bảo hộ nhãn hiệu</option>
+              <option value="paper_international">Bài báo công bố quốc tế (WoS/Scopus)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative">
+          <p id="kpi-support-title" class="text-[11px] font-semibold text-slate-500 uppercase">Kinh phí nhóm được lọc</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <h3 id="kpi-support-amount" class="text-2xl sm:text-3xl font-extrabold text-emerald-600">1.189.000.000</h3>
+            <span class="text-xs text-emerald-700 font-medium">đồng</span>
+          </div>
+          <p id="kpi-support-words" class="text-[11px] text-slate-400 mt-1">Đ1: 934 tr | Đ2: 55 tr | Đ3: 191 tr | Đ4: 9 tr</p>
+          <div class="absolute right-3 top-3 w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-base">💰</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative">
+          <p class="text-[11px] font-semibold text-slate-500 uppercase">Số đối tượng được lọc</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <h3 id="kpi-support-count" class="text-2xl sm:text-3xl font-extrabold text-sky-700">40</h3>
+            <span class="text-xs text-slate-500 font-medium">đơn vị / cá nhân</span>
+          </div>
+          <p id="kpi-support-detail" class="text-[11px] text-slate-400 mt-1">21 DN, 6 Hộ KD, 2 HTX, 11 Cá nhân</p>
+          <div class="absolute right-3 top-3 w-8 h-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center text-base">👥</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative">
+          <p class="text-[11px] font-semibold text-slate-500 uppercase">Doanh nghiệp KH&CN (Điều 8)</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <h3 id="kpi-support-dn" class="text-2xl sm:text-3xl font-extrabold text-indigo-700">5</h3>
+            <span class="text-xs text-indigo-700 font-medium">doanh nghiệp</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">Tổng 500 triệu đ (100 tr/DN)</p>
+          <div class="absolute right-3 top-3 w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center text-base">🏢</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative">
+          <p class="text-[11px] font-semibold text-slate-500 uppercase">Bài báo quốc tế (Điều 10)</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <h3 id="kpi-support-paper" class="text-2xl sm:text-3xl font-extrabold text-purple-700">6</h3>
+            <span class="text-xs text-purple-700 font-medium">bài báo (170 tr)</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">5 tác giả ĐH Quy Nhơn (5 Q1, 1 Q2)</p>
+          <div class="absolute right-3 top-3 w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center text-base">🎓</div>
+        </div>
+      </div>
+
+      <!-- BẢNG 1: DANH SÁCH CHI TIẾT ĐỐI TƯỢNG NHẬN KINH PHÍ -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b bg-slate-50/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <h2 id="support-table-title" class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+              <span>📋</span> Danh sách tổ chức, cá nhân nhận kinh phí hỗ trợ năm 2026
+            </h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Chi trả qua tài khoản ngân hàng / trực tiếp theo quyết định phê duyệt của Sở KH&CN</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="support-search-input" oninput="renderSupportTable()" placeholder="Tìm tên đơn vị, STK, ngân hàng..." class="px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg w-56 focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <button onclick="exportSupportExcel()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition whitespace-nowrap">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              Xuất Excel
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100/90 text-slate-600 uppercase font-semibold text-[11px] border-b border-slate-200">
+                <th class="p-3 text-center w-12">TT</th>
+                <th class="p-3.5">Tên tổ chức / cá nhân</th>
+                <th class="p-3.5">Chính sách được nhận</th>
+                <th class="p-3.5 font-mono text-center">Đợt / Quyết định</th>
+                <th class="p-3.5 font-mono text-center">Số tài khoản / CCCD / GCN</th>
+                <th class="p-3.5">Ngân hàng / Đơn vị cấp</th>
+                <th class="p-3.5 text-right">Mức hỗ trợ (đồng)</th>
+              </tr>
+            </thead>
+            <tbody id="support-table-body" class="divide-y divide-slate-100">
+              <tr><td colspan="7" class="p-8 text-center text-slate-400">Đang tải danh sách...</td></tr>
+            </tbody>
+            <tfoot>
+              <tr class="bg-slate-50 font-bold border-t border-slate-200 text-slate-900">
+                <td colspan="6" id="support-total-label" class="p-3.5 text-right uppercase text-xs">Tổng cộng kinh phí:</td>
+                <td id="support-total-amount" class="p-3.5 text-right text-sm text-emerald-700 font-extrabold">989.000.000</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- BẢNG 2: THỐNG KÊ THEO TỪNG ĐIỀU KHOẢN NGHỊ QUYẾT 10/2026 -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b bg-slate-50/70 flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">Tổng hợp kết quả hỗ trợ phân bổ theo từng điều khoản</h2>
+          <span class="text-[11px] text-slate-500">Nguồn vốn sự nghiệp KH&CN tỉnh Gia Lai</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100/90 text-slate-600 uppercase font-semibold text-[11px] border-b">
+                <th class="p-3 text-center">Điều khoản</th>
+                <th class="p-3.5">Nội dung chính sách hỗ trợ</th>
+                <th class="p-3.5 text-center">Số đối tượng</th>
+                <th class="p-3.5 text-right">Đợt 1 (đồng)</th>
+                <th class="p-3.5 text-right">Đợt 2 (đồng)</th>
+                <th class="p-3.5 text-right font-bold text-slate-800">Tổng cộng (đồng)</th>
+                <th class="p-3.5 text-center">Đánh giá thực hiện</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr class="hover:bg-slate-50">
+                <td class="p-3 text-center"><span class="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-[11px] font-extrabold rounded-lg border border-emerald-200">Nhóm 02</span></td>
+                <td class="p-3.5 font-bold text-slate-900">
+                  Hệ thống quản lý tiên tiến & Truy xuất nguồn gốc
+                  <span class="text-[11px] font-normal text-slate-500 block">(ISO/HACCP/ISO 22000/17025 - Điều 5)</span>
+                </td>
+                <td class="p-3.5 text-center font-medium">13 đơn vị</td>
+                <td class="p-3.5 text-right font-medium text-slate-700">300.000.000</td>
+                <td class="p-3.5 text-right font-medium text-sky-700">25.000.000</td>
+                <td class="p-3.5 text-right font-semibold text-emerald-700">325.000.000</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 text-[10px]">Đã hoàn thành</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3 text-center"><span class="px-2.5 py-1 bg-indigo-50 text-indigo-800 text-[11px] font-extrabold rounded-lg border border-indigo-200">Nhóm 04</span></td>
+                <td class="p-3.5 font-bold text-slate-900">
+                  Xác lập quyền sở hữu công nghiệp
+                  <span class="text-[11px] font-normal text-slate-500 block">(Văn bằng bảo hộ nhãn hiệu thông thường - Điều 7)</span>
+                </td>
+                <td class="p-3.5 text-center font-medium">9 đơn vị/cá nhân</td>
+                <td class="p-3.5 text-right font-medium text-slate-700">24.000.000</td>
+                <td class="p-3.5 text-right font-medium text-sky-700">30.000.000</td>
+                <td class="p-3.5 text-right font-semibold text-emerald-700">54.000.000</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 text-[10px]">Đã hoàn thành</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3 text-center"><span class="px-2.5 py-1 bg-violet-50 text-violet-800 text-[11px] font-extrabold rounded-lg border border-violet-200">Nhóm 05</span></td>
+                <td class="p-3.5 font-bold text-slate-900">
+                  Phát triển Doanh nghiệp KH&CN & Công nghệ cao
+                  <span class="text-[11px] font-normal text-slate-500 block">(Hỗ trợ thành lập lần đầu 100 tr/DN - Điều 8)</span>
+                </td>
+                <td class="p-3.5 text-center font-medium">5 DN</td>
+                <td class="p-3.5 text-right font-medium text-slate-700">500.000.000</td>
+                <td class="p-3.5 text-right font-medium text-slate-400">0</td>
+                <td class="p-3.5 text-right font-semibold text-emerald-700">500.000.000</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 text-[10px]">Đã hoàn thành</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3 text-center"><span class="px-2.5 py-1 bg-cyan-50 text-cyan-800 text-[11px] font-extrabold rounded-lg border border-cyan-200">Nhóm 07</span></td>
+                <td class="p-3.5 font-bold text-slate-900">
+                  Bài báo tạp chí quốc tế uy tín
+                  <span class="text-[11px] font-normal text-slate-500 block">(WoS, Scopus Q1, Q2 - Điều 10)</span>
+                </td>
+                <td class="p-3.5 text-center font-medium">3 tác giả (4 bài)</td>
+                <td class="p-3.5 text-right font-medium text-slate-700">110.000.000</td>
+                <td class="p-3.5 text-right font-medium text-slate-400">0</td>
+                <td class="p-3.5 text-right font-semibold text-emerald-700">110.000.000</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 text-[10px]">Đã hoàn thành</span></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="bg-slate-50 font-bold border-t border-slate-200 text-slate-900">
+                <td colspan="3" class="p-3.5 text-right uppercase text-xs">Tổng hợp cả năm 2026:</td>
+                <td class="p-3.5 text-right text-xs font-semibold text-slate-700">934.000.000</td>
+                <td class="p-3.5 text-right text-xs font-semibold text-sky-700">55.000.000</td>
+                <td class="p-3.5 text-right text-sm font-extrabold text-emerald-700">989.000.000</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 5: CƠ SỞ DỮ LIỆU ==================== -->
+    <div id="tab-database" class="tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-semibold uppercase text-slate-500">Bằng sáng chế & GPHI</p>
+            <h3 class="text-2xl font-bold text-slate-900 mt-1">46</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">Đã cấp văn bằng</p>
+          </div>
+          <div class="text-2xl">📜</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-semibold uppercase text-slate-500">Đề tài nghiệm thu</p>
+            <h3 class="text-2xl font-bold text-sky-700 mt-1">112</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">Cấp tỉnh & cơ sở</p>
+          </div>
+          <div class="text-2xl">🔬</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-semibold uppercase text-slate-500">Hợp đồng chuyển giao</p>
+            <h3 class="text-2xl font-bold text-indigo-700 mt-1">29</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">Đã đăng ký hợp pháp</p>
+          </div>
+          <div class="text-2xl">🤝</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-semibold uppercase text-slate-500">Văn bản QPPL KH&CN</p>
+            <h3 class="text-2xl font-bold text-emerald-700 mt-1">68</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">Luật, NĐ, TT, QĐ tỉnh</p>
+          </div>
+          <div class="text-2xl">📚</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b bg-slate-50 flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">Kho dữ liệu kết quả nghiên cứu khoa học & Sở hữu trí tuệ</h2>
+          <input type="text" placeholder="Tìm kiếm tài liệu, sáng chế..." class="px-3 py-1.5 text-xs bg-white border rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-sky-500">
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-600 uppercase font-semibold text-[11px] border-b">
+                <th class="p-3.5">Tên kết quả / Sáng chế / Đề tài</th>
+                <th class="p-3.5">Số văn bằng / Quyết định</th>
+                <th class="p-3.5">Chủ sở hữu / Cơ quan chủ trì</th>
+                <th class="p-3.5 text-center">Năm công nhận</th>
+                <th class="p-3.5 text-center">Trạng thái ứng dụng</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-bold text-slate-900">Quy trình sản xuất phân bón vi sinh từ phụ phẩm cà phê</td>
+                <td class="p-3.5 font-mono text-slate-600">GPHI-VN-2024-0089</td>
+                <td class="p-3.5">Công ty CP Sinh học Tây Nguyên</td>
+                <td class="p-3.5 text-center text-slate-500">2024</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">Đã thương mại hóa</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-bold text-slate-900">Bài báo: “Interacting with AI voice-based chatbots: A study on EFL students' satisfaction and speaking performance”</td>
+                <td class="p-3.5 font-mono text-slate-600">QĐ 202/QĐ-SKHCN</td>
+                <td class="p-3.5">Nguyễn Quang Ngoạn (Trường ĐH Quy Nhơn) - Tạp chí The JALT CALL Journal (Q1)</td>
+                <td class="p-3.5 text-center text-slate-500">2026</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-semibold border border-sky-200">Công bố Q1 quốc tế</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-bold text-slate-900">Bài báo: “Enhancing EAP students’ repertoires of evaluative language expressions through an innovative teaching sequence with redesigned course materials”</td>
+                <td class="p-3.5 font-mono text-slate-600">QĐ 201/QĐ-SKHCN</td>
+                <td class="p-3.5">Nguyễn Tiến Phùng (Trường ĐH Quy Nhơn) - Tạp chí Journal of English for Academic Purposes (Q1)</td>
+                <td class="p-3.5 text-center text-slate-500">2026</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-semibold border border-sky-200">Công bố Q1 quốc tế</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-bold text-slate-900">Bài báo: “Phytochemical profiling, antioxidant activity, and allelopathic potential of Jatropha podagrica Hook. leaf extract and fractions”</td>
+                <td class="p-3.5 font-mono text-slate-600">QĐ 236/QĐ-SKHCN</td>
+                <td class="p-3.5">Nguyễn Thanh Liêm (Trường ĐH Quy Nhơn) - Tạp chí Scientific Reports (Q1)</td>
+                <td class="p-3.5 text-center text-slate-500">2026</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-semibold border border-sky-200">Công bố Q1 quốc tế</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-bold text-slate-900">Bài báo: “Alkaloid Content, Anti-Inflammatory Activity and Phytochemical Profile of White Velvet Bean Seeds”</td>
+                <td class="p-3.5 font-mono text-slate-600">QĐ 236/QĐ-SKHCN</td>
+                <td class="p-3.5">Nguyễn Thanh Liêm (Trường ĐH Quy Nhơn) - Tạp chí J. Food Processing & Preservation (Q2)</td>
+                <td class="p-3.5 text-center text-slate-500">2026</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200">Công bố Q2 quốc tế</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-bold text-slate-900">Hệ thống sấy nông sản hồi lưu năng lượng mặt trời</td>
+                <td class="p-3.5 font-mono text-slate-600">SC-VN-2023-0145</td>
+                <td class="p-3.5">Trung tâm Ứng dụng Tiến bộ KH&CN</td>
+                <td class="p-3.5 text-center text-slate-500">2023</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">Đã chuyển giao</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3.5 font-bold text-slate-900">Nghiên cứu tuyển chọn giống chanh leo kháng bệnh virus</td>
+                <td class="p-3.5 font-mono text-slate-600">QĐ-678/QĐ-UBND</td>
+                <td class="p-3.5">Viện Khoa học Nông nghiệp Tây Nguyên</td>
+                <td class="p-3.5 text-center text-slate-500">2025</td>
+                <td class="p-3.5 text-center"><span class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 font-semibold border border-sky-200">Đang nhân rộng</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL XEM CHI TIẾT HỒ SƠ DOANH NGHIỆP -->
+  <div id="detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 class="font-bold text-sm text-slate-900 uppercase">Hồ sơ thẩm định điều kiện duy trì</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+      </div>
+      <div id="modal-content" class="text-xs space-y-3 text-slate-700"></div>
+      <div class="pt-3 border-t flex justify-between items-center">
+        <button onclick="printReport()" class="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg">🖨️ In biên nhận PDF</button>
+        <button onclick="closeModal()" class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.log(err));
+    }
+
+    // Chuyển đổi giữa 6 Tab
+    let activeTabId = 'tab-overview';
+    function switchTab(tabId) {
+      activeTabId = tabId;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById('btn-' + tabId).classList.add('active');
+
+      if (tabId === 'tab-overview') {
+        renderOverviewCharts();
+      } else if (tabId === 'tab-enterprise') {
+        renderCharts();
+      }
+    }
+
+    // Dữ liệu Tổng quan Dashboard
+    let overviewDataCache = null;
+    let overviewFundsChartInstance = null;
+    let overviewEntitiesChartInstance = null;
+
+    async function loadOverviewData() {
+      try {
+        const res = await fetch("/api/overview");
+        const json = await res.json();
+        if (json.success && json.summary) {
+          overviewDataCache = json.summary;
+          renderOverviewKPIs(json.summary);
+          renderOverviewCharts(json.summary);
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải dữ liệu tổng quan:", err);
+      }
+    }
+
+    function renderOverviewKPIs(data) {
+      if (!data) return;
+      // Doanh nghiệp
+      if (document.getElementById("ov-ent-total")) {
+        document.getElementById("ov-ent-total").textContent = data.enterprises?.total || 31;
+      }
+      if (document.getElementById("ov-ent-compliant")) {
+        const comp = data.enterprises?.compliant || 26;
+        const total = data.enterprises?.total || 31;
+        const pct = ((comp / total) * 100).toFixed(1);
+        document.getElementById("ov-ent-compliant").textContent = `${comp} DN (${pct}%)`;
+      }
+      if (document.getElementById("ov-ent-non-compliant")) {
+        const non = data.enterprises?.non_compliant || 5;
+        const total = data.enterprises?.total || 31;
+        const pct = ((non / total) * 100).toFixed(1);
+        document.getElementById("ov-ent-non-compliant").textContent = `${non} DN (${pct}%)`;
+      }
+      if (document.getElementById("ov-ent-rd")) {
+        document.getElementById("ov-ent-rd").textContent = data.enterprises?.formatted_rd || "67.878 triệu đồng";
+      }
+
+      // Tổ chức
+      if (document.getElementById("ov-org-total")) {
+        document.getElementById("ov-org-total").textContent = data.organizations?.total || 57;
+      }
+      if (document.getElementById("ov-org-active")) {
+        document.getElementById("ov-org-active").textContent = `${data.organizations?.active || 26} tổ chức`;
+      }
+      if (document.getElementById("ov-org-closed")) {
+        document.getElementById("ov-org-closed").textContent = `${data.organizations?.reorganized_or_closed || 24} trung tâm`;
+      }
+      if (document.getElementById("ov-org-other")) {
+        document.getElementById("ov-org-other").textContent = `${data.organizations?.merged_or_other || 7} tổ chức`;
+      }
+
+      // Kinh phí
+      if (document.getElementById("ov-support-total")) {
+        const totalMil = Math.round((data.support_policies?.grand_total || 1189000000) / 1000000);
+        document.getElementById("ov-support-total").textContent = totalMil.toLocaleString('vi-VN');
+      }
+      if (document.getElementById("ov-support-b1")) {
+        const b1Mil = Math.round(((data.support_policies?.batch1_total || 934000000) + (data.support_policies?.batch2_total || 55000000)) / 1000000);
+        document.getElementById("ov-support-b1").textContent = `${b1Mil} triệu đ (28 ĐV)`;
+      }
+      if (document.getElementById("ov-support-b2")) {
+        const bNewMil = Math.round(((data.support_policies?.batch3_total || 191000000) + (data.support_policies?.batch4_total || 9000000)) / 1000000);
+        document.getElementById("ov-support-b2").textContent = `${bNewMil} triệu đ (12 ĐV)`;
+      }
+      if (document.getElementById("ov-support-recipients")) {
+        document.getElementById("ov-support-recipients").textContent = `${data.support_policies?.total_recipients || 40} tổ chức, cá nhân`;
+      }
+    }
+
+    function renderOverviewCharts(data) {
+      const d = data || overviewDataCache;
+      if (!d) return;
+
+      // Biểu đồ 1: Phân bổ kinh phí 4 nhóm
+      const fundsCanvas = document.getElementById("chart-overview-funds");
+      if (fundsCanvas) {
+        if (overviewFundsChartInstance) overviewFundsChartInstance.destroy();
+        const grps = d.support_policies?.groups || {};
+        overviewFundsChartInstance = new Chart(fundsCanvas.getContext("2d"), {
+          type: 'doughnut',
+          data: {
+            labels: [
+              'DN KH&CN (503M)',
+              'ISO/HACCP (453M)',
+              'Bài báo QT (170M)',
+              'Nhãn hiệu & SHTT (63M)'
+            ],
+            datasets: [{
+              data: [
+                grps.enterprise_fund || 503000000,
+                grps.iso_management || 453000000,
+                grps.international_paper || 170000000,
+                grps.intellectual_property || 63000000
+              ],
+              backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 10, font: { size: 10 }, color: '#475569' }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const val = context.raw || 0;
+                    return ' ' + context.label.split(' ')[0] + ': ' + val.toLocaleString('vi-VN') + ' đ';
+                  }
+                }
+              }
+            },
+            cutout: '68%'
+          }
+        });
+      }
+
+      // Biểu đồ 2: Cơ cấu các chủ thể KH&CN tỉnh Gia Lai
+      const entCanvas = document.getElementById("chart-overview-entities");
+      if (entCanvas) {
+        if (overviewEntitiesChartInstance) overviewEntitiesChartInstance.destroy();
+        const activeOrg = d.organizations?.active || 26;
+        const orgTwoLevel = d.organizations?.reorganized_or_closed || 24;
+        const orgOther = d.organizations?.merged_or_other || 7;
+        const entTotal = d.enterprises?.total || 31;
+
+        overviewEntitiesChartInstance = new Chart(entCanvas.getContext("2d"), {
+          type: 'bar',
+          data: {
+            labels: ['Doanh nghiệp KH&CN', 'Tổ chức đang hoạt động', 'Sắp xếp CQ 2 cấp', 'Chuyển đổi/Khác'],
+            datasets: [{
+              label: 'Số lượng chủ thể',
+              data: [entTotal, activeOrg, orgTwoLevel, orgOther],
+              backgroundColor: ['#2563eb', '#059669', '#d97706', '#64748b'],
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return ' Số lượng: ' + context.raw + ' đơn vị';
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: '#f1f5f9' },
+                ticks: { color: '#64748b', font: { size: 10 } }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: '#475569', font: { size: 10 } }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // Dữ liệu Doanh nghiệp
+    let reportsData = [];
+    let sizeChartInstance = null;
+    let complianceChartInstance = null;
+
+    async function loadData() {
+      try {
+        const res = await fetch("/api/reports");
+        const json = await res.json();
+        if (json.success) {
+          reportsData = json.reports || [];
+          updateKPIs(json.stats);
+          renderCharts(json.stats);
+          renderTable();
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải dữ liệu:", err);
+      }
+    }
+
+    function updateKPIs(stats) {
+      if (!stats) return;
+      document.getElementById("kpi-total").textContent = stats.total;
+      document.getElementById("kpi-compliant").textContent = stats.compliant_count;
+      document.getElementById("kpi-compliant-rate").textContent = `(${stats.compliance_rate}%)`;
+      document.getElementById("kpi-non-compliant").textContent = stats.non_compliant_count;
+      document.getElementById("kpi-total-rd").textContent = (stats.total_rd_expense || 0).toLocaleString("vi-VN");
+    }
+
+    function renderCharts(stats) {
+      const sizeCtx = document.getElementById("chart-size");
+      if (!sizeCtx) return;
+      const ctxSize = sizeCtx.getContext("2d");
+      if (sizeChartInstance) sizeChartInstance.destroy();
+
+      const small = reportsData.filter(r => r.firm_size === 'micro_small').length;
+      const med = reportsData.filter(r => r.firm_size === 'medium').length;
+      const large = reportsData.filter(r => r.firm_size === 'large').length;
+
+      sizeChartInstance = new Chart(ctxSize, {
+        type: 'doughnut',
+        data: {
+          labels: ['Nhỏ & Siêu nhỏ', 'Doanh nghiệp vừa', 'Doanh nghiệp lớn'],
+          datasets: [{
+            data: [small || 1, med || 1, large || 0],
+            backgroundColor: ['#0284c7', '#6366f1', '#a855f7'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+          cutout: '65%'
+        }
+      });
+
+      const compCtx = document.getElementById("chart-compliance");
+      if (!compCtx) return;
+      const ctxComp = compCtx.getContext("2d");
+      if (complianceChartInstance) complianceChartInstance.destroy();
+
+      const smallComp = reportsData.filter(r => r.firm_size === 'micro_small' && r.is_compliant).length;
+      const smallNon = reportsData.filter(r => r.firm_size === 'micro_small' && !r.is_compliant).length;
+      const medComp = reportsData.filter(r => r.firm_size === 'medium' && r.is_compliant).length;
+      const medNon = reportsData.filter(r => r.firm_size === 'medium' && !r.is_compliant).length;
+
+      complianceChartInstance = new Chart(ctxComp, {
+        type: 'bar',
+        data: {
+          labels: ['Nhỏ & Siêu nhỏ', 'Doanh nghiệp vừa', 'Doanh nghiệp lớn'],
+          datasets: [
+            { label: 'Đạt điều kiện', data: [smallComp, medComp, 0], backgroundColor: '#10b981', borderRadius: 4 },
+            { label: 'Chưa đạt', data: [smallNon, medNon, 0], backgroundColor: '#f59e0b', borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+            y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("table-body");
+      if (!tbody) return;
+      const search = document.getElementById("search-input").value.toLowerCase().trim();
+      const sizeFilter = document.getElementById("filter-size").value;
+      const statusFilter = document.getElementById("filter-status").value;
+      const yearFilter = document.getElementById("filter-year")?.value || "all";
+
+      const filtered = reportsData.filter(r => {
+        const matchSearch = (
+          r.company_name?.toLowerCase().includes(search) || 
+          r.address?.toLowerCase().includes(search) ||
+          r.products?.toLowerCase().includes(search) ||
+          r.field?.toLowerCase().includes(search) ||
+          String(r.cert_year)?.includes(search)
+        );
+        const matchSize = (sizeFilter === "all" || r.firm_size === sizeFilter);
+        const matchStatus = (statusFilter === "all" || (statusFilter === "compliant" && r.is_compliant) || (statusFilter === "non_compliant" && !r.is_compliant));
+
+        let matchYear = true;
+        if (yearFilter === "2013-2018") matchYear = (r.cert_year >= 2013 && r.cert_year <= 2018);
+        else if (yearFilter === "2019-2021") matchYear = (r.cert_year >= 2019 && r.cert_year <= 2021);
+        else if (yearFilter === "2022-2024") matchYear = (r.cert_year >= 2022 && r.cert_year <= 2024);
+        else if (yearFilter === "2025-2026") matchYear = (r.cert_year >= 2025 && r.cert_year <= 2026);
+
+        return matchSearch && matchSize && matchStatus && matchYear;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">Không tìm thấy doanh nghiệp nào phù hợp với bộ lọc.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((r, idx) => {
+        const sizeBadge = {
+          micro_small: '<span class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 text-[10px] font-semibold border border-sky-200">Nhỏ & Siêu nhỏ</span>',
+          medium: '<span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 text-[10px] font-semibold border border-indigo-200">Vừa</span>',
+          large: '<span class="px-2 py-0.5 rounded-full bg-purple-50 text-purple-800 text-[10px] font-semibold border border-purple-200">Lớn</span>'
+        }[r.firm_size] || r.firm_size;
+
+        const statusBadge = r.is_compliant
+          ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px] border border-emerald-200">✅ Đủ điều kiện</span>'
+          : '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 font-bold text-[10px] border border-amber-200">⚠️ Chưa đạt</span>';
+
+        return `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="p-3 text-center font-bold text-slate-500">${r.id || idx + 1}</td>
+            <td class="p-3.5 max-w-xs">
+              <div class="font-bold text-slate-900 leading-snug">${r.company_name}</div>
+              <div class="text-[11px] text-slate-500 mt-1 flex items-start gap-1">
+                <span>📍</span> <span>${r.address || "Chưa cập nhật"}</span>
+              </div>
+            </td>
+            <td class="p-3.5 max-w-sm">
+              <div class="text-[11px] text-slate-700 leading-relaxed font-medium">
+                ${r.products || "Theo danh mục cấp phép"}
+              </div>
+            </td>
+            <td class="p-3.5">
+              <span class="inline-block px-2 py-1 bg-slate-100 text-slate-700 rounded text-[11px]">
+                ${r.field || "Khoa học & Công nghệ"}
+              </span>
+            </td>
+            <td class="p-3 text-center font-bold text-sky-700 text-xs">${r.cert_year}</td>
+            <td class="p-3 text-center">${sizeBadge}</td>
+            <td class="p-3 text-center">${statusBadge}</td>
+            <td class="p-3 text-center">
+              <button onclick="viewDetail(${r.id})" class="px-2.5 py-1 bg-gov-50 hover:bg-gov-100 text-gov-800 rounded-md font-semibold text-[11px] border border-gov-200 transition">
+                Chi tiết
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function viewDetail(id) {
+      const r = reportsData.find(x => x.id === id);
+      if (!r) return;
+      const modal = document.getElementById("detail-modal");
+      const content = document.getElementById("modal-content");
+
+      let issuesHtml = "";
+      if (!r.is_compliant && r.issues && r.issues.length > 0) {
+        issuesHtml = `
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 space-y-1">
+            <div class="font-bold text-[11px] uppercase">Các chỉ tiêu chưa đáp ứng điều kiện duy trì:</div>
+            <ul class="list-disc list-inside space-y-0.5 text-[11px]">
+              ${r.issues.map(i => `<li>${i}</li>`).join("")}
+            </ul>
+          </div>
+        `;
+      } else {
+        issuesHtml = `
+          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 font-medium">
+            ✅ Doanh nghiệp đáp ứng đầy đủ điều kiện duy trì tư cách DN KH&CN theo quy định.
+          </div>
+        `;
+      }
+
+      content.innerHTML = `
+        <div class="border-b pb-2">
+          <div class="font-bold text-sm text-slate-900">${r.company_name}</div>
+          <div class="text-[11px] text-slate-500 mt-0.5">Địa chỉ: <strong>${r.address || "N/A"}</strong></div>
+          <div class="text-[11px] text-slate-500">Năm cấp GCN: <strong>${r.cert_year}</strong> | Lĩnh vực: <strong>${r.field || "KH&CN"}</strong></div>
+        </div>
+        <div class="p-2.5 bg-slate-50 rounded-lg text-xs space-y-1">
+          <div class="font-semibold text-slate-700">Sản phẩm KH&CN được chứng nhận:</div>
+          <div class="text-slate-600 leading-relaxed">${r.products || "Theo phụ lục GCN"}</div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div>Quy mô: <strong>${r.firm_size === 'micro_small' ? 'Nhỏ & Siêu nhỏ' : (r.firm_size === 'medium' ? 'Doanh nghiệp vừa' : 'Doanh nghiệp lớn')}</strong></div>
+          <div>Doanh thu thuần BQ: <strong>${(r.net_revenue || 0).toLocaleString()} triệu đ</strong></div>
+          <div>Tổng chi R&D BQ: <strong>${(r.rd_expense || 0).toLocaleString()} triệu đ</strong></div>
+          <div>Tỷ lệ chi R&D: <strong>${(r.rd_rate || 0).toFixed(2)}%</strong></div>
+          <div>Nhân lực R&D: <strong>${r.staff_internal || 0} người</strong> (VN: ${r.staff_vn || 0})</div>
+        </div>
+        ${issuesHtml}
+      `;
+      modal.classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("detail-modal").classList.add("hidden");
+    }
+
+    function exportCurrentTab() {
+      let csv = "\uFEFFSTT,Tên doanh nghiệp,Địa chỉ,Sản phẩm KH&CN được chứng nhận,Lĩnh vực hoạt động,Năm chứng nhận,Quy mô,D.Thu thuần (triệu đ),Chi R&D (triệu đ),Tỷ lệ R&D (%),Đạt điều kiện duy trì\n";
+      reportsData.forEach((r, idx) => {
+        csv += `${r.id || idx + 1},"${r.company_name}","${r.address || ''}","${(r.products || '').replace(/"/g, '""')}","${r.field || ''}",${r.cert_year},"${r.firm_size}",${r.net_revenue || 0},${r.rd_expense || 0},${r.rd_rate || 0},"${r.is_compliant ? 'Đạt' : 'Chưa đạt'}"\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `Danh_Sach_31_DN_KHCN_Gia_Lai_${new Date().getFullYear()}.csv`;
+      a.click();
+    }
+
+    function broadcastReminder() {
+      alert("Đã gửi tin nhắn nhắc nhở đôn đốc tới các doanh nghiệp chưa đạt điều kiện qua Bot Telegram và Zalo OA!");
+    }
+
+    function printReport() {
+      window.print();
+    }
+
+    // Dữ liệu Tổ chức KH&CN (Tab 2)
+    let orgsData = [];
+
+    async function loadOrgData() {
+      try {
+        const res = await fetch("/api/organizations");
+        const json = await res.json();
+        if (json.success) {
+          orgsData = json.organizations || [];
+          const stats = json.stats;
+          if (stats) {
+            document.getElementById("org-kpi-total").textContent = stats.total;
+            document.getElementById("org-kpi-active").textContent = stats.active;
+            document.getElementById("org-kpi-closed").textContent = stats.closed;
+            document.getElementById("org-kpi-review").textContent = stats.review;
+          }
+          renderOrgTable();
+        }
+      } catch (err) {
+        console.error("Lỗi tải tổ chức KH&CN:", err);
+      }
+    }
+
+    function renderOrgTable() {
+      const tbody = document.getElementById("org-table-body");
+      if (!tbody) return;
+      const search = (document.getElementById("org-search-input")?.value || "").toLowerCase().trim();
+      const statusFilter = document.getElementById("org-filter-status")?.value || "all";
+
+      const filtered = orgsData.filter(o => {
+        const matchSearch = (
+          o.name?.toLowerCase().includes(search) ||
+          o.cert_no?.toLowerCase().includes(search) ||
+          o.address?.toLowerCase().includes(search) ||
+          o.note?.toLowerCase().includes(search)
+        );
+        const matchStatus = (statusFilter === "all" || o.status === statusFilter);
+        return matchSearch && matchStatus;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Không tìm thấy tổ chức KH&CN nào phù hợp với bộ lọc.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((o, idx) => {
+        let badge = '<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 text-[10px]">Đang hoạt động</span>';
+        if (o.status === 'closed') {
+          badge = '<span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-semibold border border-rose-200 text-[10px]">Không còn HĐ</span>';
+        } else if (o.status === 'review') {
+          badge = '<span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-semibold border border-amber-200 text-[10px]">' + o.status_text + '</span>';
+        }
+
+        return `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="p-3 text-center font-bold text-slate-500">${o.id || idx + 1}</td>
+            <td class="p-3.5 max-w-xs font-bold text-slate-900 leading-snug">${o.name}</td>
+            <td class="p-3.5 text-center font-mono text-slate-600 text-[11px]">${o.cert_no}</td>
+            <td class="p-3.5 text-center text-slate-500 text-[11px]">${o.issue_date}</td>
+            <td class="p-3.5 max-w-sm text-slate-600 text-[11px] leading-relaxed">${o.address}</td>
+            <td class="p-3.5 text-center">${badge}</td>
+            <td class="p-3.5 max-w-xs text-slate-500 text-[11px]">${o.note ? `<span class="italic text-slate-600 font-medium">${o.note}</span>` : "--"}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function exportOrgExcel() {
+      let csv = "\uFEFFTT,Tên tổ chức KH&CN,Số hiệu GCN,Ngày cấp,Địa chỉ,Tình trạng,Ghi chú theo dõi\n";
+      orgsData.forEach((o, idx) => {
+        csv += `${o.id || idx + 1},"${o.name}","${o.cert_no}","${o.issue_date}","${(o.address || '').replace(/"/g, '""')}","${o.status_text}","${(o.note || '').replace(/"/g, '""')}"\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `Danh_Sach_57_To_Chuc_KHCN_Gia_Lai_${new Date().getFullYear()}.csv`;
+      a.click();
+    }
+
+    function showPolicyDetail(policyKey) {
+      const modal = document.getElementById("detail-modal");
+      const content = document.getElementById("modal-content");
+      
+      const policyMap = {
+        dieu4: {
+          title: "Điều 4: Đổi mới công nghệ, chuyển giao công nghệ trong doanh nghiệp",
+          target: "Doanh nghiệp thành lập theo Luật DN, có trụ sở chính và thực hiện dự án đầu tư trên địa bàn tỉnh Gia Lai.",
+          cond: "Thực hiện dự án đầu tư và có hoạt động chuyển giao công nghệ, đổi mới công nghệ theo Luật CGCN.",
+          rates: [
+            "Thuê chuyên gia tư vấn đánh giá, hiệu chỉnh, làm chủ công nghệ, đào tạo hấp thụ CN: Hỗ trợ đến 30% giá trị hợp đồng, tối đa 300.000.000 đồng/doanh nghiệp/năm.",
+            "Hợp đồng chuyển giao công nghệ có giá trị dưới 1 tỷ đồng: Hỗ trợ 30% giá trị hợp đồng, tối đa 300.000.000 đồng/hợp đồng/doanh nghiệp/năm.",
+            "Hợp đồng chuyển giao công nghệ có giá trị từ 1 tỷ đồng trở lên: Hỗ trợ 25% giá trị hợp đồng, tối đa 500.000.000 đồng/hợp đồng/doanh nghiệp/năm."
+          ]
+        },
+        dieu5: {
+          title: "Điều 5: Hệ thống quản lý tiên tiến & Truy xuất nguồn gốc",
+          target: "Doanh nghiệp, hợp tác xã, cơ sở sản xuất kinh doanh, cá nhân trên địa bàn tỉnh.",
+          cond: "Xây dựng, áp dụng thành công và được cấp giấy chứng nhận phù hợp; kết nối chia sẻ dữ liệu với Cổng TXNG quốc gia.",
+          rates: [
+            "TCVN ISO 9001 / ISO 9001: 25.000.000 đồng/GCN.",
+            "TCVN ISO 22000, HACCP, IFS, BRC, FSSC 22000: 25.000.000 đồng/GCN.",
+            "TCVN ISO/IEC 17025 (phòng thí nghiệm): 25.000.000 đồng/GCN.",
+            "TCVN ISO 14001 (môi trường): 40.000.000 đồng/GCN.",
+            "TCVN ISO 50001 (năng lượng): 40.000.000 đồng/GCN.",
+            "TCVN ISO 56001 (quản lý đổi mới): 100.000.000 đồng/GCN.",
+            "Tiêu chuẩn quốc gia về Halal (TCVN 13708, 13709, 13710): 50.000.000 đồng/GCN.",
+            "Truy xuất nguồn gốc sản phẩm OCOP từ 3 sao trở lên: 50% hợp đồng, tối đa 50.000.000 đồng/hợp đồng/năm.",
+            "Truy xuất nguồn gốc sản phẩm không phải OCOP: 50% hợp đồng, tối đa 40.000.000 đồng/hợp đồng/năm."
+          ]
+        },
+        dieu6: {
+          title: "Điều 6: Giải thưởng chất lượng Quốc gia & Quốc tế Châu Á - Thái Bình Dương",
+          target: "Doanh nghiệp đạt Giải thưởng chất lượng theo Quyết định của Thủ tướng hoặc Tổ chức Châu Á - TBD.",
+          cond: "Sau khi có quyết định đạt giải của cấp có thẩm quyền.",
+          rates: [
+            "Đạt Giải Bạc chất lượng quốc gia: 30.000.000 đồng/Giải thưởng.",
+            "Đạt Giải Vàng chất lượng quốc gia (Thủ tướng quyết định): 50.000.000 đồng/Giải thưởng.",
+            "Đạt Giải thưởng chất lượng quốc tế Châu Á - Thái Bình Dương: 80.000.000 đồng/Giải thưởng."
+          ]
+        },
+        dieu7: {
+          title: "Điều 7: Xác lập quyền sở hữu công nghiệp",
+          target: "Tổ chức, cá nhân hoạt động sản xuất kinh doanh có trụ sở chính trên địa bàn tỉnh.",
+          cond: "Được cấp văn bằng bảo hộ trong nước hoặc có quyết định chấp nhận đơn hợp lệ ở nước ngoài.",
+          rates: [
+            "Trong nước - Sáng chế, Giải pháp hữu ích, Thiết kế bố trí bán dẫn: 30.000.000 đồng/Bằng độc quyền.",
+            "Trong nước - Kiểu dáng công nghiệp: 15.000.000 đồng/Bằng độc quyền.",
+            "Trong nước - Nhãn hiệu thông thường: 10.000.000 đồng/Giấy chứng nhận.",
+            "Nước ngoài - Sáng chế, Giải pháp hữu ích, Thiết kế bố trí bán dẫn: 40.000.000 đồng/đơn hợp lệ.",
+            "Nước ngoài - Kiểu dáng, nhãn hiệu: 25.000.000 đồng/đơn hợp lệ (không quá 2 lần/năm).",
+            "Tư vấn tra cứu tính mới giải pháp đạt giải thi sáng tạo KT tỉnh: Tối đa 20.000.000 đồng/hợp đồng."
+          ]
+        },
+        dieu8: {
+          title: "Điều 8: Thúc đẩy phát triển Doanh nghiệp KH&CN, Doanh nghiệp công nghệ cao",
+          target: "Doanh nghiệp được thành lập và chứng nhận theo quy định pháp luật.",
+          cond: "Tổ chức, doanh nghiệp được chứng nhận lần đầu là Doanh nghiệp KH&CN hoặc Doanh nghiệp công nghệ cao.",
+          rates: [
+            "Hỗ trợ trực tiếp một lần sau khi được cấp Giấy chứng nhận: 100.000.000 đồng/doanh nghiệp/chứng nhận."
+          ]
+        },
+        dieu9: {
+          title: "Điều 9: Xúc tiến thị trường khoa học và công nghệ",
+          target: "Doanh nghiệp, tổ chức, cá nhân có trụ sở và hoạt động trên địa bàn tỉnh.",
+          cond: "Sản phẩm hình thành từ kết quả NCKH&PTCN nghiệm thu đạt trở lên tham gia Techmart, Techdemo...",
+          rates: [
+            "Tham gia xúc tiến thị trường KH&CN ở trong nước: 30.000.000 đồng/đơn vị, cá nhân/sự kiện/năm.",
+            "Tham gia xúc tiến thị trường KH&CN ở nước ngoài: 60.000.000 đồng/đơn vị, cá nhân/sự kiện/năm."
+          ]
+        },
+        dieu10: {
+          title: "Điều 10: Tác giả có bài báo đăng tạp chí quốc tế uy tín (Web of Science, Scopus)",
+          target: "Tác giả hoặc đồng tác giả bài báo đang công tác tại các đơn vị trên địa bàn tỉnh.",
+          cond: "Bài báo thuộc cơ sở dữ liệu Web of science / Scopus xếp hạng Q1, Q2 (kết quả nghiên cứu tự thân không dùng NSNN).",
+          rates: [
+            "Bài báo thuộc danh mục Web of science hoặc Scopus xếp hạng Q1: 30.000.000 đồng/bài báo.",
+            "Bài báo thuộc danh mục Web of science hoặc Scopus xếp hạng Q2: 20.000.000 đồng/bài báo."
+          ]
+        }
+      };
+
+      const p = policyMap[policyKey];
+      if (!p) return;
+
+      content.innerHTML = `
+        <div class="border-b pb-2">
+          <div class="font-bold text-sm text-sky-900">${p.title}</div>
+          <div class="text-[11px] text-slate-500 mt-1">Căn cứ: Nghị quyết số 10/2026/NQ-HĐND tỉnh Gia Lai</div>
+        </div>
+        <div class="space-y-2 text-xs">
+          <div><strong>Đối tượng hỗ trợ:</strong> <span class="text-slate-600">${p.target}</span></div>
+          <div><strong>Điều kiện hỗ trợ:</strong> <span class="text-slate-600">${p.cond}</span></div>
+          <div class="pt-2 border-t">
+            <div class="font-bold text-slate-800 mb-1.5">Mức kinh phí hỗ trợ cụ thể:</div>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 bg-sky-50/70 p-3 rounded-lg border border-sky-100">
+              ${p.rates.map(r => `<li>${r}</li>`).join("")}
+            </ul>
+          </div>
+        </div>
+      `;
+      modal.classList.remove("hidden");
+    }
+
+    // ==================== DỮ LIỆU KINH PHÍ HỖ TRỢ NĂM 2026 (TAB 4) ====================
+    let fullSupportResponse = null;
+
+    async function loadSupportData() {
+      try {
+        const res = await fetch('/api/support');
+        const json = await res.json();
+        if (json.success) {
+          fullSupportResponse = json;
+          renderSupportTable();
+        }
+      } catch (err) {
+        console.error("Lỗi tải dữ liệu chi trả hỗ trợ:", err);
+      }
+    }
+
+    function resetSupportFilters() {
+      const elRes = document.getElementById("filter-resolution");
+      const elBatch = document.getElementById("filter-batch");
+      const elDec = document.getElementById("filter-decision");
+      const elAmt = document.getElementById("filter-amount");
+      const elDoc = document.getElementById("filter-doctype");
+      const elSearch = document.getElementById("support-search-input");
+
+      if (elRes) elRes.value = "all";
+      if (elBatch) elBatch.value = "all";
+      if (elDec) elDec.value = "all";
+      if (elAmt) elAmt.value = "all";
+      if (elDoc) elDoc.value = "all";
+      if (elSearch) elSearch.value = "";
+
+      renderSupportTable();
+    }
+
+    function renderSupportTable() {
+      const tbody = document.getElementById("support-table-body");
+      if (!tbody || !fullSupportResponse) return;
+
+      let list = fullSupportResponse.recipients || [];
+
+      // 1. Lọc theo Nghị quyết
+      const selRes = document.getElementById("filter-resolution")?.value || "all";
+      if (selRes !== "all") {
+        list = list.filter(item => item.resolution_group === selRes);
+      }
+
+      // 2. Lọc theo Đợt
+      const selBatch = document.getElementById("filter-batch")?.value || "all";
+      if (selBatch !== "all") {
+        list = list.filter(item => item.batch === selBatch);
+      }
+
+      // 3. Lọc theo Quyết định
+      const selDec = document.getElementById("filter-decision")?.value || "all";
+      if (selDec !== "all") {
+        if (selDec === "QD_303") {
+          list = list.filter(item => (item.decision_no || "").includes("303"));
+        } else if (selDec === "QD_304") {
+          list = list.filter(item => (item.decision_no || "").includes("304"));
+        } else if (selDec === "QD_305") {
+          list = list.filter(item => (item.decision_no || "").includes("305"));
+        } else if (selDec === "QD_338") {
+          list = list.filter(item => (item.decision_no || "").includes("338"));
+        } else if (selDec === "QD_0244") {
+          list = list.filter(item => (item.decision_no || "").includes("0244"));
+        } else if (selDec === "QD_201") {
+          list = list.filter(item => (item.decision_no || "").includes("201"));
+        } else if (selDec === "QD_202") {
+          list = list.filter(item => (item.decision_no || "").includes("202"));
+        } else if (selDec === "QD_236") {
+          list = list.filter(item => (item.decision_no || "").includes("236"));
+        } else if (selDec === "BATCH1_GENERAL") {
+          list = list.filter(item => item.batch === "Đợt 1" && !item.decision_no);
+        }
+      }
+
+      // 4. Lọc theo Mức kinh phí
+      const selAmt = document.getElementById("filter-amount")?.value || "all";
+      if (selAmt !== "all") {
+        if (selAmt === "100m_plus") {
+          list = list.filter(item => item.amount >= 100000000);
+        } else if (selAmt === "30m_50m") {
+          list = list.filter(item => item.amount >= 30000000 && item.amount <= 50000000);
+        } else if (selAmt === "25m") {
+          list = list.filter(item => item.amount === 25000000);
+        } else if (selAmt === "under_20m") {
+          list = list.filter(item => item.amount < 20000000);
+        }
+      }
+
+      // 5. Lọc theo Loại giấy tờ / Văn bằng
+      const selDoc = document.getElementById("filter-doctype")?.value || "all";
+      if (selDoc !== "all") {
+        if (selDoc === "cert_enterprise") {
+          list = list.filter(item => (item.doc_type || "").includes("DN KH&CN") || item.amount >= 100000000);
+        } else if (selDoc === "cert_iso") {
+          list = list.filter(item => (item.doc_type || "").includes("ISO") || (item.doc_type || "").includes("HACCP"));
+        } else if (selDoc === "cert_trademark") {
+          list = list.filter(item => (item.doc_type || "").includes("nhãn hiệu") || (item.policy_received || "").toLowerCase().includes("nhãn hiệu"));
+        } else if (selDoc === "paper_international") {
+          list = list.filter(item => (item.doc_type || "").includes("Bài báo") || (item.policy_received || "").toLowerCase().includes("bài báo"));
+        }
+      }
+
+      // Tìm kiếm theo từ khóa
+      const q = (document.getElementById("support-search-input")?.value || "").toLowerCase().trim();
+      if (q) {
+        list = list.filter(item => {
+          return (item.name && item.name.toLowerCase().includes(q)) ||
+                 (item.bank_account && item.bank_account.toLowerCase().includes(q)) ||
+                 (item.bank_name && item.bank_name.toLowerCase().includes(q)) ||
+                 (item.decision_no && item.decision_no.toLowerCase().includes(q)) ||
+                 (item.cert_no && item.cert_no.toLowerCase().includes(q)) ||
+                 (item.doc_name && item.doc_name.toLowerCase().includes(q)) ||
+                 (item.policy_received && item.policy_received.toLowerCase().includes(q));
+        });
+      }
+
+      // Tính toán thống kê theo kết quả lọc
+      const totalAmount = list.reduce((sum, item) => sum + item.amount, 0);
+      const totalCount = list.length;
+      const countDN = list.filter(i => i.amount >= 100000000).length;
+      
+      // Đếm chính xác số lượng bài báo (thầy Nguyễn Thanh Liêm nhận hỗ trợ 2 bài: 1 Q1 + 1 Q2)
+      let countPaper = 0;
+      list.filter(i => (i.policy_received || "").toLowerCase().includes("bài báo")).forEach(i => {
+        if ((i.policy_received || "").includes("01 bài Q1") && (i.policy_received || "").includes("01 bài Q2")) {
+          countPaper += 2;
+        } else {
+          countPaper += 1;
+        }
+      });
+
+      const kpiAmount = document.getElementById("kpi-support-amount");
+      const kpiCount = document.getElementById("kpi-support-count");
+      const kpiWords = document.getElementById("kpi-support-words");
+      const kpiDetail = document.getElementById("kpi-support-detail");
+      const kpiDN = document.getElementById("kpi-support-dn");
+      const kpiPaper = document.getElementById("kpi-support-paper");
+      const totalAmountFooter = document.getElementById("support-total-amount");
+
+      if (kpiAmount) kpiAmount.innerText = totalAmount.toLocaleString('vi-VN');
+      if (kpiCount) kpiCount.innerText = totalCount;
+      if (kpiWords) kpiWords.innerText = `Tổng kinh phí của ${totalCount} đối tượng được lọc`;
+      if (kpiDetail) kpiDetail.innerText = `${countDN} DN KH&CN | ${countPaper} Bài báo quốc tế`;
+      if (kpiDN) kpiDN.innerText = countDN;
+      if (kpiPaper) kpiPaper.innerText = countPaper;
+      if (totalAmountFooter) totalAmountFooter.innerText = totalAmount.toLocaleString('vi-VN');
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Không tìm thấy tổ chức / cá nhân nào khớp với tiêu chí lọc đã chọn</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((item, idx) => {
+        let batchBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700">Đợt 1</span>`;
+        if (item.batch === 'Đợt 2') {
+          batchBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-300">Đợt 2</span>`;
+        } else if (item.batch === 'Đợt 3') {
+          batchBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Đợt 3</span>`;
+        } else if (item.batch === 'Đợt 4') {
+          batchBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-300">Đợt 4</span>`;
+        }
+        
+        const decisionText = item.decision_no 
+          ? `<div class="text-[10px] text-slate-600 font-mono mt-0.5 font-semibold">${item.decision_no}</div>` 
+          : `<div class="text-[10px] text-slate-400 font-mono mt-0.5">Phê duyệt Đợt 1</div>`;
+
+        let resBadge = '';
+        if (item.resolution_group === 'nq10') {
+          resBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200">NQ 10/2026</span>`;
+        } else if (item.resolution_group === 'pre_nq10') {
+          resBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-50 text-amber-700 border border-amber-200">NQ 14/2020</span>`;
+        } else {
+          resBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-sky-50 text-sky-700 border border-sky-200">Chuyển tiếp</span>`;
+        }
+
+        const accountCol = item.cert_no ? `<span class="font-bold text-slate-800">${item.cert_no}</span>` : (item.bank_account || '-');
+        const bankCol = item.cert_date ? `Ngày cấp: ${item.cert_date}` : (item.bank_name || '-');
+        const docBadge = item.doc_type ? `<div class="text-[10px] text-indigo-700 font-medium mt-1">📄 ${item.doc_type}</div>` : '';
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="p-3 text-center font-bold text-slate-500">${String(idx + 1).padStart(2, '0')}</td>
+            <td class="p-3.5">
+              <div class="font-bold text-slate-900">${item.name}</div>
+              <div class="mt-0.5">${resBadge}</div>
+            </td>
+            <td class="p-3.5 text-slate-700 leading-relaxed text-[11px]">
+              <div>${item.policy_received}</div>
+              ${docBadge}
+            </td>
+            <td class="p-3.5 text-center whitespace-nowrap">${batchBadge} ${decisionText}</td>
+            <td class="p-3.5 font-mono text-center font-semibold text-sky-800 bg-sky-50/40 text-[11px]">${accountCol}</td>
+            <td class="p-3.5 text-slate-600 text-[11px]">${bankCol}</td>
+            <td class="p-3.5 text-right font-bold text-emerald-700 font-mono text-xs whitespace-nowrap">${item.amount ? item.amount.toLocaleString('vi-VN') : '0'}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function exportSupportExcel() {
+      if (!fullSupportResponse || !fullSupportResponse.recipients) {
+        alert("Chưa có dữ liệu để xuất!");
+        return;
+      }
+
+      // Áp dụng đúng các bộ lọc đang chọn để xuất ra file
+      let list = fullSupportResponse.recipients || [];
+      const selRes = document.getElementById("filter-resolution")?.value || "all";
+      if (selRes !== "all") list = list.filter(item => item.resolution_group === selRes);
+
+      const selBatch = document.getElementById("filter-batch")?.value || "all";
+      if (selBatch !== "all") list = list.filter(item => item.batch === selBatch);
+
+      const selDec = document.getElementById("filter-decision")?.value || "all";
+      if (selDec !== "all") {
+        if (selDec === "QD_0244") list = list.filter(item => (item.decision_no || "").includes("0244"));
+        else if (selDec === "QD_201") list = list.filter(item => (item.decision_no || "").includes("201"));
+        else if (selDec === "QD_202") list = list.filter(item => (item.decision_no || "").includes("202"));
+        else if (selDec === "QD_236") list = list.filter(item => (item.decision_no || "").includes("236"));
+        else if (selDec === "BATCH1_GENERAL") list = list.filter(item => item.batch === "Đợt 1" && !item.decision_no);
+      }
+
+      const selAmt = document.getElementById("filter-amount")?.value || "all";
+      if (selAmt !== "all") {
+        if (selAmt === "100m_plus") list = list.filter(item => item.amount >= 100000000);
+        else if (selAmt === "30m_50m") list = list.filter(item => item.amount >= 30000000 && item.amount <= 50000000);
+        else if (selAmt === "25m") list = list.filter(item => item.amount === 25000000);
+        else if (selAmt === "under_20m") list = list.filter(item => item.amount < 20000000);
+      }
+
+      const selDoc = document.getElementById("filter-doctype")?.value || "all";
+      if (selDoc !== "all") {
+        if (selDoc === "cert_enterprise") list = list.filter(item => (item.doc_type || "").includes("DN KH&CN") || item.amount >= 100000000);
+        else if (selDoc === "cert_iso") list = list.filter(item => (item.doc_type || "").includes("ISO") || (item.doc_type || "").includes("HACCP"));
+        else if (selDoc === "cert_trademark") list = list.filter(item => (item.doc_type || "").includes("nhãn hiệu") || (item.policy_received || "").toLowerCase().includes("nhãn hiệu"));
+        else if (selDoc === "paper_international") list = list.filter(item => (item.doc_type || "").includes("Bài báo") || (item.policy_received || "").toLowerCase().includes("bài báo"));
+      }
+
+      let csv = "\uFEFFTT,Đợt,Căn cứ Nghị quyết,Tên tổ chức/cá nhân,Chính sách được nhận,Quyết định phê duyệt,Loại giấy tờ/Văn bằng,Số tài khoản / CCCD / Số GCN,Ngân hàng / Ngày cấp,Mức hỗ trợ (đồng)\n";
+      list.forEach((item, index) => {
+        const cleanName = `"${(item.name || '').replace(/"/g, '""')}"`;
+        const cleanPolicy = `"${(item.policy_received || '').replace(/"/g, '""')}"`;
+        const cleanDecision = `"${(item.decision_no || 'Đợt 1').replace(/"/g, '""')}"`;
+        const cleanRes = `"${(item.resolution_name || 'NQ 10/2026/NQ-HĐND').replace(/"/g, '""')}"`;
+        const cleanDoc = `"${(item.doc_type || '').replace(/"/g, '""')}"`;
+        const cleanAccount = `"${(item.cert_no || item.bank_account || '').replace(/"/g, '""')}"`;
+        const cleanBank = `"${(item.cert_date ? ('Ngày cấp: ' + item.cert_date) : (item.bank_name || '')).replace(/"/g, '""')}"`;
+        csv += `${index + 1},"${item.batch || ''}",${cleanRes},${cleanName},${cleanPolicy},${cleanDecision},${cleanDoc},${cleanAccount},${cleanBank},${item.amount}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Bao_cao_kinh_phi_KHCN_2026_Theo_bo_loc.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Khởi chạy đồng thời các nguồn dữ liệu
+    loadOverviewData();
+    loadData();
+    loadOrgData();
+    loadSupportData();
+  </script>
+</body>
+</html>

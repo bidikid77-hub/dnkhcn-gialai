@@ -1,0 +1,22 @@
+{
+  "name": "Trung Tâm Quản Lý DN KH&CN",
+  "short_name": "DN KH&CN",
+  "description": "Hệ thống theo dõi, thu thập thông tin và giám sát điều kiện duy trì DN KH&CN",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0284c7",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
