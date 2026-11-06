@@ -1828,7 +1828,7 @@
         const res = await fetch(API_BASE + "/api/support");
         const json = await res.json();
         if (json.success) {
-          if (!json.recipients) {
+          if (!Array.isArray(json.recipients) || json.recipients.length === 0) {
             json.recipients = [
               ...(json.batch1?.recipients || []).map(r => ({ ...r, batch: r.batch || 'Đợt 1' })),
               ...(json.batch2?.recipients || []).map(r => ({ ...r, batch: r.batch || 'Đợt 2' })),
