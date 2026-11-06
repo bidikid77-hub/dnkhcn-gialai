@@ -1828,6 +1828,14 @@
         const res = await fetch(API_BASE + "/api/support");
         const json = await res.json();
         if (json.success) {
+          if (!json.recipients) {
+            json.recipients = [
+              ...(json.batch1?.recipients || []).map(r => ({ ...r, batch: r.batch || 'Đợt 1' })),
+              ...(json.batch2?.recipients || []).map(r => ({ ...r, batch: r.batch || 'Đợt 2' })),
+              ...(json.batch3?.recipients || []).map(r => ({ ...r, batch: r.batch || 'Đợt 3' })),
+              ...(json.batch4?.recipients || []).map(r => ({ ...r, batch: r.batch || 'Đợt 4' }))
+            ];
+          }
           fullSupportResponse = json;
           renderSupportTable();
         }
