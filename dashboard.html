@@ -2098,7 +2098,7 @@
 
         let totalAmount = 0;
         list.forEach((item, index) => {
-          const amt = Number(item.amount) || 0;
+          const amt = typeof item.amount === 'number' ? item.amount : (Number(String(item.amount || 0).replace(/[^0-9]/g, '')) || 0);
           totalAmount += amt;
 
           const accountStr = String(item.cert_no || item.bank_account || "");
@@ -2326,7 +2326,7 @@
       let rows = '';
       let total = 0;
       list.forEach((item, index) => {
-        const amt = Number(item.amount) || 0;
+        const amt = typeof item.amount === 'number' ? item.amount : (Number(String(item.amount || 0).replace(/[^0-9]/g, '')) || 0);
         total += amt;
         const resStr = item.resolution_name || (item.resolution_group === 'nq10' ? 'NQ 10/2026/NQ-HĐND' : 'NQ 14/2020/NQ-HĐND');
         const decStr = item.decision_no ? (item.batch + ' (' + item.decision_no + ')') : (item.batch || 'Đợt 1');
