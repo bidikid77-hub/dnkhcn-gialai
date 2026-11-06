@@ -20,7 +20,8 @@ const ALLOWED_STATIC = new Set([
   'dashboard.html',
   'mau-khai-bao-dn.html',
   'manifest.json',
-  'sw.js'
+  'sw.js',
+  'xlsx.full.min.js'
 ]);
 
 const server = http.createServer(async (req, res) => {
