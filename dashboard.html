@@ -1890,9 +1890,12 @@
         if (selDec === "BATCH1_GENERAL") {
           list = list.filter(item => item.batch === "Đợt 1" && !item.decision_no);
         } else {
-          const decCode = selDec.replace("QD_", "");
-          const decRegex = new RegExp(`(^|[^0-9])${decCode}([^0-9]|$)`);
-          list = list.filter(item => decRegex.test(item.decision_no || ""));
+          const match = /^QD_([0-9]+)$/.exec(selDec);
+          if (match) {
+            const decCode = match[1];
+            const decRegex = new RegExp(`(^|[^0-9])${decCode}([^0-9]|$)`);
+            list = list.filter(item => decRegex.test(item.decision_no || ""));
+          }
         }
       }
 
@@ -1900,15 +1903,24 @@
       const selAmt = document.getElementById("filter-amount")?.value || "all";
       if (selAmt !== "all") {
         if (selAmt === "100m_plus") {
-          list = list.filter(item => item.amount >= 100000000);
+          list = list.filter(item => (Number(item.amount) || 0) >= 100000000);
         } else if (selAmt === "30m_70m") {
-          list = list.filter(item => item.amount >= 30000000 && item.amount <= 70000000);
+          list = list.filter(item => {
+            const val = Number(item.amount) || 0;
+            return val >= 30000000 && val <= 70000000;
+          });
         } else if (selAmt === "30m_50m") {
-          list = list.filter(item => item.amount >= 30000000 && item.amount <= 50000000);
+          list = list.filter(item => {
+            const val = Number(item.amount) || 0;
+            return val >= 30000000 && val <= 50000000;
+          });
         } else if (selAmt === "25m") {
-          list = list.filter(item => item.amount === 25000000);
+          list = list.filter(item => (Number(item.amount) || 0) === 25000000);
         } else if (selAmt === "under_20m") {
-          list = list.filter(item => item.amount < 20000000);
+          list = list.filter(item => {
+            const val = Number(item.amount) || 0;
+            return val > 0 && val < 20000000;
+          });
         }
       }
 
@@ -2096,19 +2108,31 @@
         if (selDec === "BATCH1_GENERAL") {
           list = list.filter(item => item.batch === "Đợt 1" && !item.decision_no);
         } else {
-          const decCode = selDec.replace("QD_", "");
-          const decRegex = new RegExp(`(^|[^0-9])${decCode}([^0-9]|$)`);
-          list = list.filter(item => decRegex.test(item.decision_no || ""));
+          const match = /^QD_([0-9]+)$/.exec(selDec);
+          if (match) {
+            const decCode = match[1];
+            const decRegex = new RegExp(`(^|[^0-9])${decCode}([^0-9]|$)`);
+            list = list.filter(item => decRegex.test(item.decision_no || ""));
+          }
         }
       }
 
       const selAmt = document.getElementById("filter-amount")?.value || "all";
       if (selAmt !== "all") {
-        if (selAmt === "100m_plus") list = list.filter(item => item.amount >= 100000000);
-        else if (selAmt === "30m_70m") list = list.filter(item => item.amount >= 30000000 && item.amount <= 70000000);
-        else if (selAmt === "30m_50m") list = list.filter(item => item.amount >= 30000000 && item.amount <= 50000000);
-        else if (selAmt === "25m") list = list.filter(item => item.amount === 25000000);
-        else if (selAmt === "under_20m") list = list.filter(item => item.amount < 20000000);
+        if (selAmt === "100m_plus") list = list.filter(item => (Number(item.amount) || 0) >= 100000000);
+        else if (selAmt === "30m_70m") list = list.filter(item => {
+          const val = Number(item.amount) || 0;
+          return val >= 30000000 && val <= 70000000;
+        });
+        else if (selAmt === "30m_50m") list = list.filter(item => {
+          const val = Number(item.amount) || 0;
+          return val >= 30000000 && val <= 50000000;
+        });
+        else if (selAmt === "25m") list = list.filter(item => (Number(item.amount) || 0) === 25000000);
+        else if (selAmt === "under_20m") list = list.filter(item => {
+          const val = Number(item.amount) || 0;
+          return val > 0 && val < 20000000;
+        });
       }
 
       const selDoc = document.getElementById("filter-doctype")?.value || "all";
