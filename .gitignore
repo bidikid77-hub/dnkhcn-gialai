@@ -2,3 +2,5 @@
 node_modules
 .DS_Store
 .env*
+thuc_hien_cs_nq10/
+scripts/
