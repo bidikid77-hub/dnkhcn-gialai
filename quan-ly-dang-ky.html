@@ -76,7 +76,7 @@
       color: white;
       border-radius: 16px;
       padding: 28px 24px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       box-shadow: 0 8px 20px -4px rgba(0, 75, 135, 0.25);
       display: flex;
       justify-content: space-between;
@@ -94,8 +94,32 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       text-align: right;
     }
-    .stat-num { font-size: 26px; font-weight: 800; color: #ffffff; }
+    .stat-num { font-size: 28px; font-weight: 800; color: #ffffff; }
     .stat-label { font-size: 12px; color: #e0f2fe; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Cloud Sync Status bar */
+    .status-bar {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid #bae6fd;
+    }
+    .pulse-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #16a34a;
+      border-radius: 50%;
+      margin-right: 6px;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+    }
 
     /* Action bar */
     .action-bar {
@@ -104,14 +128,14 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
     .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
     .btn {
-      padding: 10px 18px;
+      padding: 11px 20px;
       border-radius: 10px;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       border: none;
       cursor: pointer;
       display: inline-flex;
@@ -123,31 +147,31 @@
     .btn-excel {
       background: #16a34a;
       color: white;
-      box-shadow: 0 4px 10px rgba(22, 163, 74, 0.25);
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
     }
     .btn-excel:hover { background: #15803d; transform: translateY(-1px); }
-    .btn-add {
-      background: var(--primary);
-      color: white;
-    }
-    .btn-add:hover { background: var(--primary-dark); }
     .btn-sync {
       background: #0284c7;
       color: white;
     }
     .btn-sync:hover { background: #0369a1; }
+    .btn-add {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-add:hover { background: var(--primary-dark); }
     .btn-copy {
       background: #ffffff;
       color: var(--text);
-      border: 1px solid var(--border);
+      border: 1.5px solid var(--border);
     }
     .btn-copy:hover { background: #f1f5f9; }
     .search-box {
-      padding: 10px 14px;
+      padding: 11px 16px;
       font-size: 14px;
       border: 1.5px solid var(--border);
       border-radius: 10px;
-      width: 260px;
+      width: 270px;
       background: white;
       font-family: inherit;
     }
@@ -198,6 +222,22 @@
       text-align: center;
       color: var(--muted);
       font-size: 14.5px;
+    }
+    
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: white;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 1000;
     }
     
     /* Modal Add */
@@ -262,14 +302,20 @@
     </div>
   </div>
 
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div><span class="pulse-dot"></span> <span id="syncStatus">Đã kết nối Máy chủ Cloud (Đang tự động đồng bộ theo thời gian thực)</span></div>
+    <div id="lastSyncTime" style="font-size: 12px; color: #0284c7;">Vừa cập nhật</div>
+  </div>
+
   <!-- Action Bar -->
   <div class="action-bar">
     <div class="btn-group">
       <button class="btn btn-excel" onclick="exportToExcel()">
         <span>📥</span> Xuất file Excel (.xlsx)
       </button>
-      <button class="btn btn-sync" onclick="syncFromCloud()">
-        <span>🔄</span> Đồng bộ từ Máy chủ
+      <button class="btn btn-sync" onclick="syncFromCloud(true)">
+        <span>🔄</span> Làm mới danh sách
       </button>
       <button class="btn btn-add" onclick="openAddModal()">
         <span>➕</span> Thêm đại biểu
@@ -311,6 +357,8 @@
     </div>
   </div>
 </div>
+
+<div id="toast"></div>
 
 <!-- Add Modal -->
 <div id="addModal" class="modal">
@@ -367,12 +415,21 @@
 <script>
   const VALID_PINS = ["2026", "0392220820", "gialai"];
 
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3000);
+  }
+
   function verifyPin() {
     const pin = document.getElementById('pinCode').value.trim();
     if (VALID_PINS.includes(pin)) {
       document.getElementById('lockScreen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       syncFromCloud();
+      // Auto-poll every 6 seconds
+      setInterval(() => syncFromCloud(false), 6000);
     } else {
       alert('Mã PIN không chính xác! Vui lòng thử lại (Gợi ý: 2026 hoặc SĐT 0392220820).');
     }
@@ -389,41 +446,23 @@
     renderTable();
   }
 
-  async function syncFromCloud() {
-    // 1. Render truoc tu LocalStorage
-    renderTable();
-
-    // 2. Dong bo tu Cloud API (Vercel & GitHub)
+  async function syncFromCloud(showNotify = false) {
     try {
-      let cloudList = [];
-      try {
-        const res = await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky?t=" + Date.now());
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data && Array.isArray(json.data)) cloudList = json.data;
+      const res = await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky?t=" + Date.now());
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+          const local = getList();
+          const merged = [...json.data];
+          local.forEach(l => {
+            const exists = merged.some(m => (m.phone && m.phone === l.phone) || (m.email && m.email === l.email && m.company === l.company));
+            if (!exists) merged.push(l);
+          });
+          setList(merged);
         }
-      } catch(e) {}
-
-      if (cloudList.length === 0) {
-        try {
-          const res2 = await fetch("https://raw.githubusercontent.com/bidikid77-hub/dnkhcn-gialai/main/data/registrations.json?t=" + Date.now());
-          if (res2.ok) {
-            const json2 = await res2.json();
-            if (Array.isArray(json2)) cloudList = json2;
-          }
-        } catch(e) {}
       }
-
-      // Merge voi LocalStorage (loai bo trung lap theo email + sdt)
-      if (cloudList.length > 0) {
-        const local = getList();
-        const merged = [...cloudList];
-        local.forEach(l => {
-          const exists = merged.some(m => (m.phone && m.phone === l.phone) || (m.email && m.email === l.email && m.company === l.company));
-          if (!exists) merged.push(l);
-        });
-        setList(merged);
-      }
+      document.getElementById('lastSyncTime').innerText = "Cập nhật lúc: " + new Date().toLocaleTimeString("vi-VN");
+      if (showNotify) showToast("Đã đồng bộ dữ liệu mới nhất từ máy chủ!");
     } catch (err) {
       console.warn("Sync error:", err);
     }
@@ -467,6 +506,7 @@
       const list = getList();
       list.splice(idx, 1);
       setList(list);
+      showToast("Đã xóa đại biểu khỏi danh sách");
     }
   }
 
@@ -475,7 +515,7 @@
   function openPasteModal() { document.getElementById('pasteModal').classList.add('active'); }
   function closePasteModal() { document.getElementById('pasteModal').classList.remove('active'); document.getElementById('emailPasteArea').value = ''; }
 
-  function saveManual(e) {
+  async function saveManual(e) {
     e.preventDefault();
     const item = {
       timestamp: new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
@@ -486,13 +526,25 @@
       phone: document.getElementById('m_phone').value.trim(),
       email: document.getElementById('m_email').value.trim()
     };
+    
+    // Save to local
     const list = getList();
     list.unshift(item);
     setList(list);
     closeAddModal();
+    showToast("Đã thêm đại biểu thành công!");
+
+    // Save to cloud
+    try {
+      await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item)
+      });
+    } catch(err) {}
   }
 
-  function parseAndSaveEmail() {
+  async function parseAndSaveEmail() {
     const text = document.getElementById('emailPasteArea').value;
     if (!text.trim()) { alert('Vui lòng dán nội dung email vào ô!'); return; }
 
@@ -518,7 +570,6 @@
     });
 
     if (!item.company && !item.main_delegate) {
-      // Fallback
       item.company = "Doanh nghiệp đăng ký qua Email";
       item.main_delegate = lines[0] || "Đại biểu";
     }
@@ -527,15 +578,21 @@
     list.unshift(item);
     setList(list);
     closePasteModal();
-    alert('Đã bóc tách và thêm đại biểu vào danh sách thành công!');
+    showToast("Đã nhận diện và thêm đại biểu vào danh sách!");
+
+    // Sync to cloud
+    try {
+      await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item)
+      });
+    } catch(e) {}
   }
 
   function exportToExcel() {
     const list = getList();
-    if (list.length === 0) {
-      alert('Danh sách hiện tại đang trống, chưa có đại biểu nào để xuất file Excel!');
-      return;
-    }
+    showToast("Đang tạo và tải file Excel...");
 
     const dataRows = [
       ["SỞ KHOA HỌC VÀ CÔNG NGHỆ TỈNH GIA LAI"],
@@ -547,19 +604,23 @@
       ["STT", "Thời gian đăng ký", "Tên Doanh nghiệp / Đơn vị", "Địa chỉ", "Họ và tên Đại biểu", "Chức vụ", "Số điện thoại", "Email liên hệ", "Ký nhận / Điểm danh"]
     ];
 
-    list.forEach((item, idx) => {
-      dataRows.push([
-        idx + 1,
-        item.timestamp || "",
-        item.company || "",
-        item.address || "",
-        item.main_delegate || "",
-        item.position || "",
-        item.phone || "",
-        item.email || "",
-        ""
-      ]);
-    });
+    if (list.length === 0) {
+      dataRows.push(["", "(Chưa có đại biểu nào đăng ký)", "", "", "", "", "", "", ""]);
+    } else {
+      list.forEach((item, idx) => {
+        dataRows.push([
+          idx + 1,
+          item.timestamp || "",
+          item.company || "",
+          item.address || "",
+          item.main_delegate || "",
+          item.position || "",
+          item.phone || "",
+          item.email || "",
+          ""
+        ]);
+      });
+    }
 
     const ws = XLSX.utils.aoa_to_sheet(dataRows);
     ws['!cols'] = [
@@ -572,6 +633,7 @@
 
     const fileName = `Danh_sach_Doanh_nghiep_Dang_ky_Hoi_thao_Gia_Lai_2026_${new Date().toISOString().slice(0,10)}.xlsx`;
     XLSX.writeFile(wb, fileName);
+    showToast("Đã tải xuống file Excel thành công!");
   }
 
   function copyTable() {
@@ -590,7 +652,7 @@
     ].join("\t"));
     const text = [headers.join("\t"), ...rows].join("\n");
     navigator.clipboard.writeText(text).then(() => {
-      alert("Đã sao chép toàn bộ danh sách vào bộ nhớ tạm! Bạn có thể nhấn Ctrl+V / Cmd+V để dán trực tiếp vào Excel hoặc Google Sheets.");
+      showToast("Đã sao chép bảng vào bộ nhớ tạm (dán được vào Excel)!");
     });
   }
 </script>
