@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng ký tham dự Hội thảo KH,CN & ĐMST Gia Lai 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #004b87;
+      --primary-dark: #003360;
+      --primary-light: #e6f0fa;
+      --accent: #0284c7;
+      --success: #16a34a;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 20px 12px 60px;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .header-card {
+      background: linear-gradient(135deg, #004b87 0%, #0369a1 100%);
+      color: white;
+      border-radius: 16px;
+      padding: 32px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 75, 135, 0.25);
+      border-top: 5px solid #38bdf8;
+    }
+    .agency-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #bae6fd;
+      margin-bottom: 8px;
+    }
+    .event-title {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.35;
+      margin-bottom: 16px;
+    }
+    .meta-box {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 14px;
+      line-height: 1.7;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .meta-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+    .meta-item:last-child { margin-bottom: 0; }
+    .form-section {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 28px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+    .section-header {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--primary-light);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-group {
+      margin-bottom: 22px;
+    }
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+    .form-label span.req {
+      color: #dc2626;
+      margin-left: 3px;
+    }
+    .form-hint {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 11px 14px;
+      font-size: 14.5px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+    textarea.form-control {
+      min-height: 90px;
+      resize: vertical;
+    }
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .checkbox-item:hover {
+      background: #f1f5f9;
+    }
+    .checkbox-item input[type="checkbox"] {
+      margin-top: 3px;
+      width: 17px;
+      height: 17px;
+      accent-color: var(--primary);
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #004b87 0%, #0284c7 100%);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 75, 135, 0.3);
+      transition: all 0.2s ease;
+    }
+    .btn-submit:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 75, 135, 0.35);
+    }
+    .support-footer {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 24px;
+    }
+    .support-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    /* Success Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      max-width: 500px;
+      width: 100%;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+      animation: pop 0.3s ease;
+    }
+    @keyframes pop {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-icon {
+      width: 64px;
+      height: 64px;
+      background: #dcfce7;
+      color: #16a34a;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+    .modal-title { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 12px; }
+    .modal-desc { font-size: 14.5px; color: #475569; margin-bottom: 24px; line-height: 1.6; }
+    .btn-modal {
+      display: inline-block;
+      padding: 11px 28px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      border-radius: 10px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header-card">
+    <div class="agency-title">SỞ KHOA HỌC VÀ CÔNG NGHỆ TỈNH GIA LAI</div>
+    <h1 class="event-title">ĐĂNG KÝ THAM DỰ HỘI THẢO CHÍNH SÁCH VÀ GIẢI PHÁP KH,CN & ĐMST DOANH NGHIỆP 2026</h1>
+    <div class="meta-box">
+      <div class="meta-item">
+        <span>⏰</span>
+        <div><strong>Thời gian:</strong> 07h30 - 11h30, Thứ Sáu ngày 27/11/2026</div>
+      </div>
+      <div class="meta-item">
+        <span>📍</span>
+        <div><strong>Địa điểm:</strong> Khách sạn Hải Âu (Số 489 An Dương Vương, TP. Quy Nhơn)</div>
+      </div>
+      <div class="meta-item">
+        <span>📞</span>
+        <div><strong>Đầu mối hỗ trợ:</strong> Ông Đào Vũ Nguyên - 0392.220820 (Phòng Công nghệ & SHTT)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form id="regForm" onsubmit="handleSubmit(event)">
+    <!-- Section 1 -->
+    <div class="form-section">
+      <div class="section-header">
+        <span>🏢</span> I. THÔNG TIN DOANH NGHIỆP / ĐƠN VỊ
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">1. Tên doanh nghiệp/đơn vị <span class="req">*</span></label>
+        <input type="text" name="company" class="form-control" placeholder="Nhập tên đầy đủ của công ty / đơn vị" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">2. Địa chỉ doanh nghiệp/đơn vị</label>
+        <input type="text" name="address" class="form-control" placeholder="Số nhà, đường, huyện/thành phố, tỉnh">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">3. Họ và tên đại biểu chính tham dự <span class="req">*</span></label>
+        <input type="text" name="main_delegate" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">4. Chức vụ của đại biểu chính <span class="req">*</span></label>
+        <input type="text" name="position" class="form-control" placeholder="Ví dụ: Giám đốc, Phó Giám đốc, Trưởng phòng R&D..." required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">5. Số điện thoại liên hệ <span class="req">*</span></label>
+        <input type="tel" name="phone" class="form-control" placeholder="Ví dụ: 0912345678" required pattern="[0-9]{10,11}">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">6. Địa chỉ email liên hệ <span class="req">*</span></label>
+        <input type="email" name="email" class="form-control" placeholder="Ví dụ: contact@doanhnghiep.vn" required>
+      </div>
+    </div>
+
+    <!-- Section 2 -->
+    <div class="form-section">
+      <div class="section-header">
+        <span>📋</span> II. THÔNG TIN ĐĂNG KÝ THAM DỰ
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">7. Tổng số đại biểu đăng ký (kể cả đại biểu chính) <span class="req">*</span></label>
+        <div class="form-hint">Nhập số nguyên từ 1 trở lên</div>
+        <input type="number" name="count" class="form-control" min="1" value="1" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">8. Họ tên, chức vụ của các đại biểu khác (nếu có)</label>
+        <div class="form-hint">Mỗi đại biểu ghi một dòng: Họ và tên - Chức vụ</div>
+        <textarea name="other_delegates" class="form-control" placeholder="1. Trần Văn B - Phó Giám đốc&#10;2. Lê Thị C - Trưởng phòng Kỹ thuật"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">9. Nội dung doanh nghiệp/đơn vị quan tâm (có thể chọn nhiều)</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item">
+            <input type="checkbox" name="interests" value="Chính sách R&D và đổi mới sáng tạo">
+            <span>Chính sách khuyến khích nghiên cứu và phát triển (R&D), đổi mới sáng tạo</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="interests" value="Công nghệ chiến lược">
+            <span>Công nghệ chiến lược và cơ hội ứng dụng trong doanh nghiệp</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="interests" value="Hạch toán chi phí R&D và thuế">
+            <span>Hạch toán chi phí R&D và chính sách thuế</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="interests" value="Chuyển giao công nghệ">
+            <span>Chuyển giao công nghệ và phát triển thị trường công nghệ</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="interests" value="Sở hữu trí tuệ và thương mại hóa">
+            <span>Sở hữu trí tuệ, doanh nghiệp KH&CN và thương mại hóa kết quả nghiên cứu</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="interests" value="Quản lý R&D và Quỹ KH&CN">
+            <span>Quản lý hoạt động R&D, sử dụng Quỹ và kinh nghiệm thực tiễn</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">10. Câu hỏi hoặc kiến nghị muốn trao đổi tại Hội thảo (nếu có)</label>
+        <textarea name="questions" class="form-control" placeholder="Gửi câu hỏi hoặc vướng mắc để Ban Tổ chức và Chuyên gia giải đáp trong phiên thảo luận..."></textarea>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn-submit">XÁC NHẬN GỬI ĐĂNG KÝ THAM DỰ ➔</button>
+  </form>
+
+  <!-- Support Footer -->
+  <div class="support-footer">
+    Ban Tổ chức Hội thảo — Sở Khoa học và Công nghệ tỉnh Gia Lai<br>
+    Hỗ trợ kỹ thuật & đăng ký: <a href="tel:0392220820">0392.220820</a> (Đào Vũ Nguyên)
+  </div>
+</div>
+
+<!-- Modal Success -->
+<div id="successModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-icon">✓</div>
+    <div class="modal-title">Đăng Ký Thành Công!</div>
+    <div class="modal-desc" id="modalDesc">
+      Ban Tổ chức đã ghi nhận thông tin đăng ký của Quý doanh nghiệp. Trân trọng cảm ơn và hẹn gặp lại Quý đại biểu tại Hội thảo ngày 27/11/2026 tại Khách sạn Hải Âu, Quy Nhơn.
+    </div>
+    <button class="btn-modal" onclick="closeModal()">Đóng cửa sổ</button>
+  </div>
+</div>
+
+<script>
+  function handleSubmit(e) {
+    e.preventDefault();
+    const form = document.getElementById('regForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    const interests = Array.from(form.querySelectorAll('input[name="interests"]:checked')).map(cb => cb.value);
+    data.interests = interests;
+    data.timestamp = new Date().toISOString();
+
+    // Store in local list
+    let list = JSON.parse(localStorage.getItem('gl2026_registrations') || '[]');
+    list.push(data);
+    localStorage.setItem('gl2026_registrations', JSON.stringify(list));
+
+    // Show modal
+    document.getElementById('modalDesc').innerHTML = `
+      Cảm ơn đại biểu <strong>${data.main_delegate}</strong> (${data.company})!<br><br>
+      Ban Tổ chức đã ghi nhận thông tin đăng ký <strong>${data.count}</strong> đại biểu tham dự Hội thảo ngày 27/11/2026 tại Khách sạn Hải Âu.
+    `;
+    document.getElementById('successModal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('successModal').classList.remove('active');
+    document.getElementById('regForm').reset();
+  }
+</script>
+
+</body>
+</html>
