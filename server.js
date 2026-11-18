@@ -21,7 +21,8 @@ const ALLOWED_STATIC = new Set([
   'mau-khai-bao-dn.html',
   'manifest.json',
   'sw.js',
-  'xlsx.full.min.js'
+  'xlsx.full.min.js',
+  'dang-ky-hoi-thao.html'
 ]);
 
 const server = http.createServer(async (req, res) => {
@@ -84,6 +85,8 @@ const server = http.createServer(async (req, res) => {
     pathname = 'dashboard.html';
   } else if (pathname === '/mau-khai-bao-dn') {
     pathname = 'index.html';
+  } else if (pathname === '/dang-ky' || pathname === '/dang-ky-hoi-thao') {
+    pathname = 'dang-ky-hoi-thao.html';
   } else {
     pathname = pathname.replace(/^\/+/, '');
   }
