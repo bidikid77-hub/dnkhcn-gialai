@@ -16,6 +16,10 @@
     {
       "source": "/dang-ky-hoi-thao",
       "destination": "/dang-ky-hoi-thao.html"
+    },
+    {
+      "source": "/quan-ly-dang-ky",
+      "destination": "/quan-ly-dang-ky.html"
     }
   ],
   "headers": [
