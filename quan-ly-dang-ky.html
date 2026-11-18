@@ -81,7 +81,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: gap;
+      flex-wrap: wrap;
       gap: 16px;
     }
     .header h1 { font-size: 20px; font-weight: 800; }
@@ -131,6 +131,11 @@
       color: white;
     }
     .btn-add:hover { background: var(--primary-dark); }
+    .btn-sync {
+      background: #0284c7;
+      color: white;
+    }
+    .btn-sync:hover { background: #0369a1; }
     .btn-copy {
       background: #ffffff;
       color: var(--text);
@@ -211,13 +216,13 @@
     .modal-box {
       background: white;
       border-radius: 16px;
-      max-width: 500px;
+      max-width: 520px;
       width: 100%;
       padding: 28px;
     }
     .form-field { margin-bottom: 14px; }
     .form-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-    .form-field input {
+    .form-field input, .form-field textarea {
       width: 100%;
       padding: 9px 12px;
       border: 1.5px solid var(--border);
@@ -263,8 +268,14 @@
       <button class="btn btn-excel" onclick="exportToExcel()">
         <span>📥</span> Xuất file Excel (.xlsx)
       </button>
+      <button class="btn btn-sync" onclick="syncFromCloud()">
+        <span>🔄</span> Đồng bộ từ Máy chủ
+      </button>
       <button class="btn btn-add" onclick="openAddModal()">
         <span>➕</span> Thêm đại biểu
+      </button>
+      <button class="btn btn-copy" onclick="openPasteModal()">
+        <span>✉️</span> Nhập từ Email
       </button>
       <button class="btn btn-copy" onclick="copyTable()">
         <span>📋</span> Sao chép bảng
@@ -338,6 +349,21 @@
   </div>
 </div>
 
+<!-- Paste Email Modal -->
+<div id="pasteModal" class="modal">
+  <div class="modal-box">
+    <h3 style="font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 8px;">✉️ Nhập nhanh từ Email thông báo</h3>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 14px;">
+      Sao chép nội dung email vừa nhận trong Gmail và dán vào đây, hệ thống sẽ tự động bóc tách thông tin đại biểu:
+    </p>
+    <textarea id="emailPasteArea" rows="7" style="width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px; font-size: 13.5px; font-family: inherit;" placeholder="Dán nội dung email vào đây..."></textarea>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-copy" onclick="closePasteModal()">Hủy</button>
+      <button type="button" class="btn btn-sync" onclick="parseAndSaveEmail()">Tự động nhận diện & Thêm</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const VALID_PINS = ["2026", "0392220820", "gialai"];
 
@@ -346,7 +372,7 @@
     if (VALID_PINS.includes(pin)) {
       document.getElementById('lockScreen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      loadRegistrations();
+      syncFromCloud();
     } else {
       alert('Mã PIN không chính xác! Vui lòng thử lại (Gợi ý: 2026 hoặc SĐT 0392220820).');
     }
@@ -363,8 +389,44 @@
     renderTable();
   }
 
-  function loadRegistrations() {
+  async function syncFromCloud() {
+    // 1. Render truoc tu LocalStorage
     renderTable();
+
+    // 2. Dong bo tu Cloud API (Vercel & GitHub)
+    try {
+      let cloudList = [];
+      try {
+        const res = await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky?t=" + Date.now());
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && Array.isArray(json.data)) cloudList = json.data;
+        }
+      } catch(e) {}
+
+      if (cloudList.length === 0) {
+        try {
+          const res2 = await fetch("https://raw.githubusercontent.com/bidikid77-hub/dnkhcn-gialai/main/data/registrations.json?t=" + Date.now());
+          if (res2.ok) {
+            const json2 = await res2.json();
+            if (Array.isArray(json2)) cloudList = json2;
+          }
+        } catch(e) {}
+      }
+
+      // Merge voi LocalStorage (loai bo trung lap theo email + sdt)
+      if (cloudList.length > 0) {
+        const local = getList();
+        const merged = [...cloudList];
+        local.forEach(l => {
+          const exists = merged.some(m => (m.phone && m.phone === l.phone) || (m.email && m.email === l.email && m.company === l.company));
+          if (!exists) merged.push(l);
+        });
+        setList(merged);
+      }
+    } catch (err) {
+      console.warn("Sync error:", err);
+    }
   }
 
   function renderTable() {
@@ -379,7 +441,7 @@
     });
 
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Chưa có đại biểu nào đăng ký hoặc không tìm thấy kết quả phù hợp.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Chưa có đại biểu nào trong danh sách.<br><small style="color:#94a3b8;">(Bấm nút <strong>"Nhập từ Email"</strong> hoặc <strong>"Thêm đại biểu"</strong> ở trên để cập nhật)</small></td></tr>`;
       return;
     }
 
@@ -408,13 +470,10 @@
     }
   }
 
-  function openAddModal() {
-    document.getElementById('addModal').classList.add('active');
-  }
-  function closeAddModal() {
-    document.getElementById('addModal').classList.remove('active');
-    document.getElementById('addForm').reset();
-  }
+  function openAddModal() { document.getElementById('addModal').classList.add('active'); }
+  function closeAddModal() { document.getElementById('addModal').classList.remove('active'); document.getElementById('addForm').reset(); }
+  function openPasteModal() { document.getElementById('pasteModal').classList.add('active'); }
+  function closePasteModal() { document.getElementById('pasteModal').classList.remove('active'); document.getElementById('emailPasteArea').value = ''; }
 
   function saveManual(e) {
     e.preventDefault();
@@ -433,6 +492,44 @@
     closeAddModal();
   }
 
+  function parseAndSaveEmail() {
+    const text = document.getElementById('emailPasteArea').value;
+    if (!text.trim()) { alert('Vui lòng dán nội dung email vào ô!'); return; }
+
+    const item = {
+      timestamp: new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
+      company: '',
+      address: '',
+      main_delegate: '',
+      position: '',
+      phone: '',
+      email: ''
+    };
+
+    const lines = text.split('\n');
+    lines.forEach(l => {
+      const line = l.trim();
+      if (/doanh nghiệp/i.test(line)) item.company = line.split(/[:\t]/).pop().trim();
+      else if (/địa chỉ/i.test(line)) item.address = line.split(/[:\t]/).pop().trim();
+      else if (/đại biểu|họ và tên/i.test(line)) item.main_delegate = line.split(/[:\t]/).pop().trim();
+      else if (/chức vụ/i.test(line)) item.position = line.split(/[:\t]/).pop().trim();
+      else if (/điện thoại|sđt/i.test(line)) item.phone = line.split(/[:\t]/).pop().trim();
+      else if (/email/i.test(line)) item.email = line.split(/[:\t]/).pop().trim();
+    });
+
+    if (!item.company && !item.main_delegate) {
+      // Fallback
+      item.company = "Doanh nghiệp đăng ký qua Email";
+      item.main_delegate = lines[0] || "Đại biểu";
+    }
+
+    const list = getList();
+    list.unshift(item);
+    setList(list);
+    closePasteModal();
+    alert('Đã bóc tách và thêm đại biểu vào danh sách thành công!');
+  }
+
   function exportToExcel() {
     const list = getList();
     if (list.length === 0) {
@@ -440,7 +537,6 @@
       return;
     }
 
-    // Format rows for Excel
     const dataRows = [
       ["SỞ KHOA HỌC VÀ CÔNG NGHỆ TỈNH GIA LAI"],
       ["HỘI THẢO CHÍNH SÁCH VÀ GIẢI PHÁP THÚC ĐẨY PHÁT TRIỂN KH,CN VÀ ĐỔI MỚI SÁNG TẠO DOANH NGHIỆP 2026"],
@@ -466,18 +562,9 @@
     });
 
     const ws = XLSX.utils.aoa_to_sheet(dataRows);
-
-    // Set column widths
     ws['!cols'] = [
-      { wch: 6 },  // STT
-      { wch: 20 }, // Thoi gian
-      { wch: 35 }, // Ten DN
-      { wch: 30 }, // Dia chi
-      { wch: 24 }, // Ho ten
-      { wch: 20 }, // Chuc vu
-      { wch: 15 }, // SDT
-      { wch: 28 }, // Email
-      { wch: 22 }  // Diem danh
+      { wch: 6 },  { wch: 20 }, { wch: 35 }, { wch: 30 },
+      { wch: 24 }, { wch: 20 }, { wch: 15 }, { wch: 28 }, { wch: 22 }
     ];
 
     const wb = XLSX.utils.book_new();
@@ -489,10 +576,7 @@
 
   function copyTable() {
     const list = getList();
-    if (list.length === 0) {
-      alert('Danh sách đang trống!');
-      return;
-    }
+    if (list.length === 0) { alert('Danh sách đang trống!'); return; }
     const headers = ["STT", "Thời gian", "Tên Doanh nghiệp", "Địa chỉ", "Họ tên Đại biểu", "Chức vụ", "Số điện thoại", "Email"];
     const rows = list.map((item, idx) => [
       idx + 1,
