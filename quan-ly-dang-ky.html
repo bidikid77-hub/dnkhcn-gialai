@@ -210,11 +210,12 @@
       background: #fee2e2;
       color: #dc2626;
       border: none;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
+      transition: background 0.15s;
     }
     .btn-del:hover { background: #fca5a5; }
     .empty-state {
@@ -240,7 +241,7 @@
       z-index: 1000;
     }
     
-    /* Modal Add */
+    /* Modal Add & Paste */
     .modal {
       display: none;
       position: fixed;
@@ -256,9 +257,10 @@
     .modal-box {
       background: white;
       border-radius: 16px;
-      max-width: 520px;
+      max-width: 540px;
       width: 100%;
-      padding: 28px;
+      padding: 26px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
     }
     .form-field { margin-bottom: 14px; }
     .form-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
@@ -269,6 +271,10 @@
       border-radius: 8px;
       font-size: 14px;
       font-family: inherit;
+    }
+    .form-field input:focus, .form-field textarea:focus {
+      outline: none;
+      border-color: var(--accent);
     }
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
   </style>
@@ -347,7 +353,7 @@
             <th>Chức vụ</th>
             <th>Số điện thoại</th>
             <th>Email</th>
-            <th style="width: 70px; text-align: center;">Thao tác</th>
+            <th style="width: 80px; text-align: center;">Thao tác</th>
           </tr>
         </thead>
         <tbody id="regTableBody">
@@ -397,17 +403,72 @@
   </div>
 </div>
 
-<!-- Paste Email Modal -->
+<!-- Paste Email Modal (Tối ưu thông minh với Form xem trước & chỉnh sửa) -->
 <div id="pasteModal" class="modal">
-  <div class="modal-box">
-    <h3 style="font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 8px;">✉️ Nhập nhanh từ Email thông báo</h3>
-    <p style="font-size: 13px; color: var(--muted); margin-bottom: 14px;">
-      Sao chép nội dung email vừa nhận trong Gmail và dán vào đây, hệ thống sẽ tự động bóc tách thông tin đại biểu:
+  <div class="modal-box" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--primary);">✉️ Nhập nhanh từ Email thông báo</h3>
+      <button type="button" onclick="closePasteModal()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted);">&times;</button>
+    </div>
+    
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">
+      Sao chép nội dung email vừa nhận trong Gmail và dán vào ô dưới. Hệ thống sẽ <strong>tự động nhận diện chính xác từng trường thông tin</strong>:
     </p>
-    <textarea id="emailPasteArea" rows="7" style="width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px; font-size: 13.5px; font-family: inherit;" placeholder="Dán nội dung email vào đây..."></textarea>
-    <div class="modal-actions">
+    
+    <textarea id="emailPasteArea" rows="4" style="width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px; font-size: 13px; font-family: inherit;" placeholder="Dán toàn bộ nội dung email vào đây..." oninput="autoDetectFromPaste()"></textarea>
+    
+    <div style="margin: 8px 0 14px; display: flex; gap: 8px;">
+      <button type="button" class="btn btn-sync" onclick="autoDetectFromPaste()" style="font-size: 13px; padding: 7px 15px;">
+        🔍 Phân tích nội dung
+      </button>
+      <button type="button" class="btn btn-copy" onclick="clearPasteForm()" style="font-size: 13px; padding: 7px 12px;">
+        Làm sạch ô
+      </button>
+    </div>
+
+    <!-- Live Preview Form -->
+    <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+      <div style="font-size: 13px; font-weight: 700; color: #0369a1; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+        <span>📋</span> KẾT QUẢ BÓC TÁCH THÔNG TIN (Quý anh/chị có thể chỉnh sửa lại nếu cần):
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+        <div class="form-field" style="margin-bottom: 0;">
+          <label style="font-size: 12px; font-weight: 600;">Tên Doanh nghiệp / Đơn vị *</label>
+          <input type="text" id="p_company" placeholder="Công ty TNHH..." style="padding: 8px 10px; font-size: 13.5px; font-weight: 600; color: #004b87;">
+        </div>
+        <div class="form-field" style="margin-bottom: 0;">
+          <label style="font-size: 12px; font-weight: 600;">Địa chỉ trụ sở</label>
+          <input type="text" id="p_address" placeholder="Xã/Phường, Huyện/TP...">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-field" style="margin-bottom: 0;">
+            <label style="font-size: 12px; font-weight: 600;">Họ và tên Đại biểu *</label>
+            <input type="text" id="p_name" placeholder="Nguyễn Văn A" style="font-weight: 600;">
+          </div>
+          <div class="form-field" style="margin-bottom: 0;">
+            <label style="font-size: 12px; font-weight: 600;">Chức vụ *</label>
+            <input type="text" id="p_pos" placeholder="Giám đốc...">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-field" style="margin-bottom: 0;">
+            <label style="font-size: 12px; font-weight: 600;">Số điện thoại *</label>
+            <input type="tel" id="p_phone" placeholder="09xxxxxxxx">
+          </div>
+          <div class="form-field" style="margin-bottom: 0;">
+            <label style="font-size: 12px; font-weight: 600;">Email liên hệ *</label>
+            <input type="email" id="p_email" placeholder="email@company.com">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top: 0;">
       <button type="button" class="btn btn-copy" onclick="closePasteModal()">Hủy</button>
-      <button type="button" class="btn btn-sync" onclick="parseAndSaveEmail()">Tự động nhận diện & Thêm</button>
+      <button type="button" class="btn btn-excel" onclick="saveParsedEmail()" style="box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);">
+        💾 Xác nhận & Lưu vào danh sách
+      </button>
     </div>
   </div>
 </div>
@@ -419,7 +480,7 @@
     const t = document.getElementById('toast');
     t.innerText = msg;
     t.style.display = 'block';
-    setTimeout(() => { t.style.display = 'none'; }, 3000);
+    setTimeout(() => { t.style.display = 'none'; }, 3200);
   }
 
   function verifyPin() {
@@ -428,8 +489,8 @@
       document.getElementById('lockScreen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       syncFromCloud();
-      // Auto-poll every 6 seconds
-      setInterval(() => syncFromCloud(false), 6000);
+      // Auto-poll every 10 seconds
+      setInterval(() => syncFromCloud(false), 10000);
     } else {
       alert('Mã PIN không chính xác! Vui lòng thử lại (Gợi ý: 2026 hoặc SĐT 0392220820).');
     }
@@ -451,14 +512,8 @@
       const res = await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky?t=" + Date.now());
       if (res.ok) {
         const json = await res.json();
-        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
-          const local = getList();
-          const merged = [...json.data];
-          local.forEach(l => {
-            const exists = merged.some(m => (m.phone && m.phone === l.phone) || (m.email && m.email === l.email && m.company === l.company));
-            if (!exists) merged.push(l);
-          });
-          setList(merged);
+        if (json.data && Array.isArray(json.data)) {
+          setList(json.data);
         }
       }
       document.getElementById('lastSyncTime').innerText = "Cập nhật lúc: " + new Date().toLocaleTimeString("vi-VN");
@@ -495,29 +550,181 @@
         <td><a href="tel:${item.phone}" style="color: #0284c7; text-decoration: none;">${item.phone || ''}</a></td>
         <td><a href="mailto:${item.email}" style="color: #64748b; text-decoration: none;">${item.email || ''}</a></td>
         <td style="text-align: center;">
-          <button class="btn-del" onclick="deleteItem(${idx})">Xóa</button>
+          <button class="btn-del" onclick="deleteItem('${item.id || idx}')">Xóa</button>
         </td>
       </tr>
     `).join('');
   }
 
-  function deleteItem(idx) {
-    if (confirm('Bạn có chắc chắn muốn xóa đại biểu này khỏi danh sách?')) {
-      const list = getList();
-      list.splice(idx, 1);
-      setList(list);
-      showToast("Đã xóa đại biểu khỏi danh sách");
+  async function deleteItem(id) {
+    if (!id) return;
+    const list = getList();
+    const item = list.find(it => String(it.id) === String(id));
+    const title = item ? (item.company || item.main_delegate) : 'đại biểu này';
+    
+    if (!confirm(`Bạn có chắc chắn muốn xóa "${title}" khỏi danh sách?`)) {
+      return;
+    }
+
+    showToast("Đang thực hiện xóa...");
+
+    // 1. Cập nhật giao diện và LocalStorage ngay lập tức
+    const updated = list.filter(it => String(it.id) !== String(id));
+    setList(updated);
+
+    // 2. Gửi lệnh xóa vĩnh viễn lên Cloud Server
+    try {
+      const res = await fetch(`https://dnkhcn-gialai-web.vercel.app/api/dang-ky?id=${encodeURIComponent(id)}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Đã xóa vĩnh viễn trên máy chủ!");
+        if (Array.isArray(data.data)) {
+          setList(data.data);
+        }
+      } else {
+        showToast("Đã xóa cục bộ trên máy.");
+      }
+    } catch (err) {
+      console.warn("Lỗi gửi lệnh DELETE lên cloud:", err);
+      showToast("Đã xóa trên máy của bạn.");
     }
   }
 
   function openAddModal() { document.getElementById('addModal').classList.add('active'); }
   function closeAddModal() { document.getElementById('addModal').classList.remove('active'); document.getElementById('addForm').reset(); }
   function openPasteModal() { document.getElementById('pasteModal').classList.add('active'); }
-  function closePasteModal() { document.getElementById('pasteModal').classList.remove('active'); document.getElementById('emailPasteArea').value = ''; }
+  function closePasteModal() { document.getElementById('pasteModal').classList.remove('active'); clearPasteForm(); }
+
+  function clearPasteForm() {
+    document.getElementById('emailPasteArea').value = '';
+    document.getElementById('p_company').value = '';
+    document.getElementById('p_address').value = '';
+    document.getElementById('p_name').value = '';
+    document.getElementById('p_pos').value = '';
+    document.getElementById('p_phone').value = '';
+    document.getElementById('p_email').value = '';
+  }
+
+  // Thuật toán nhận diện Email thông minh đa định dạng
+  function parseEmailText(text) {
+    if (!text) return null;
+    const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    
+    const result = {
+      company: "",
+      address: "",
+      main_delegate: "",
+      position: "",
+      phone: "",
+      email: ""
+    };
+
+    function getFieldType(str) {
+      const s = str.trim().toLowerCase().replace(/[:\t*]/g, "").trim();
+      if (/^(tên\s*(doanh\s*nghiệp|công\s*ty|đơn\s*vị|tổ\s*chức)(\s*\/\s*đơn\s*vị)?|doanh\s*nghiệp(\s*\/\s*đơn\s*vị)?|công\s*ty|đơn\s*vị|company|organization)$/i.test(s)) return "company";
+      if (/^(địa\s*chỉ(\s*trụ\s*sở)?|address)$/i.test(s)) return "address";
+      if (/^(họ\s*(và\s*)?tên(\s*(đại\s*biểu|người\s*đăng\s*ký))?|đại\s*biểu(\s*tham\s*dự)?|người\s*đăng\s*ký|full\s*name|họ\s*tên)$/i.test(s)) return "main_delegate";
+      if (/^(chức\s*vụ|vị\s*trí|chức\s*danh|position|title)$/i.test(s)) return "position";
+      if (/^(số\s*điện\s*thoại|điện\s*thoại(\s*liên\s*hệ)?|sđt|di\s*động|phone|tel|mobile)$/i.test(s)) return "phone";
+      if (/^(email(\s*liên\s*hệ)?|thư\s*điện\s*tử|mail)$/i.test(s)) return "email";
+      return null;
+    }
+
+    function isLabelText(str) {
+      return getFieldType(str) !== null;
+    }
+
+    let i = 0;
+    while (i < rawLines.length) {
+      const line = rawLines[i];
+
+      // Dạng 1: Dòng chứa dấu hai chấm hoặc tab (vd: "Địa chỉ: 123 Lê Duẩn" hoặc "Tên DN:\nCông ty ABC")
+      if (line.includes(":") || line.includes("\t")) {
+        const parts = line.split(/[:\t]/);
+        const key = parts[0].trim();
+        const val = parts.slice(1).join(":").trim();
+        const field = getFieldType(key);
+
+        if (field) {
+          if (val && !isLabelText(val)) {
+            result[field] = val;
+          } else if (i + 1 < rawLines.length && !isLabelText(rawLines[i + 1])) {
+            result[field] = rawLines[i + 1].trim();
+            i++;
+          }
+          i++;
+          continue;
+        }
+      }
+
+      // Dạng 2: Dòng là nhãn đứng riêng (khi copy bảng từ Gmail)
+      const field = getFieldType(line);
+      if (field) {
+        if (i + 1 < rawLines.length && !isLabelText(rawLines[i + 1])) {
+          result[field] = rawLines[i + 1].trim();
+          i += 2;
+          continue;
+        }
+      }
+
+      // Dạng 3: Dòng dữ liệu tự do
+      if (!result.company && /^(công\s*ty|cty|doanh\s*nghiệp|hợp\s*tác\s*xã|tập\s*đoàn|chi\s*nhánh)/i.test(line)) {
+        result.company = line;
+      }
+      else if (!result.email && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(line)) {
+        result.email = line;
+      }
+      else if (!result.phone && /(?:(?:\+84|0)[235789])(?:\d[\s\.]?){8}\b/.test(line)) {
+        const m = line.match(/(?:(?:\+84|0)[235789])(?:\d[\s\.]?){8}\b/);
+        if (m) result.phone = m[0].replace(/[\s\.]/g, "");
+      }
+      else if (!result.position && /^(tổng\s*giám\s*đốc|phó\s*tổng\s*giám\s*đốc|giám\s*đốc|phó\s*giám\s*đốc|chủ\s*tịch|trưởng\s*phòng|phó\s*trưởng\s*phòng|quản\s*lý|đại\s*diện)$/i.test(line)) {
+        result.position = line;
+      }
+
+      i++;
+    }
+
+    // Dự phòng tìm kiếm toàn văn regex
+    if (!result.email) {
+      const em = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (em) result.email = em[0];
+    }
+    if (!result.phone) {
+      const pm = text.match(/(?:(?:\+84|0)[235789])(?:\d[\s\.]?){8}\b/);
+      if (pm) result.phone = pm[0].replace(/[\s\.]/g, "");
+    }
+
+    // Bảo đảm không nhầm công ty vào tên đại biểu
+    if (result.main_delegate && /^(công\s*ty|cty|doanh\s*nghiệp)/i.test(result.main_delegate)) {
+      if (!result.company) result.company = result.main_delegate;
+      result.main_delegate = "";
+    }
+
+    return result;
+  }
+
+  function autoDetectFromPaste() {
+    const text = document.getElementById('emailPasteArea').value;
+    if (!text.trim()) return;
+
+    const parsed = parseEmailText(text);
+    if (parsed) {
+      if (parsed.company) document.getElementById('p_company').value = parsed.company;
+      if (parsed.address) document.getElementById('p_address').value = parsed.address;
+      if (parsed.main_delegate) document.getElementById('p_name').value = parsed.main_delegate;
+      if (parsed.position) document.getElementById('p_pos').value = parsed.position;
+      if (parsed.phone) document.getElementById('p_phone').value = parsed.phone;
+      if (parsed.email) document.getElementById('p_email').value = parsed.email;
+    }
+  }
 
   async function saveManual(e) {
     e.preventDefault();
     const item = {
+      id: Date.now(),
       timestamp: new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
       company: document.getElementById('m_company').value.trim(),
       address: document.getElementById('m_address').value.trim(),
@@ -527,67 +734,77 @@
       email: document.getElementById('m_email').value.trim()
     };
     
-    // Save to local
+    // Lưu cục bộ ngay
     const list = getList();
     list.unshift(item);
     setList(list);
     closeAddModal();
     showToast("Đã thêm đại biểu thành công!");
 
-    // Save to cloud
+    // Đồng bộ lên cloud
     try {
-      await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky", {
+      const res = await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(item)
       });
-    } catch(err) {}
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setList(data.data);
+      }
+    } catch(err) {
+      console.warn("Lỗi lưu lên cloud:", err);
+    }
   }
 
-  async function parseAndSaveEmail() {
-    const text = document.getElementById('emailPasteArea').value;
-    if (!text.trim()) { alert('Vui lòng dán nội dung email vào ô!'); return; }
+  async function saveParsedEmail() {
+    const company = document.getElementById('p_company').value.trim();
+    const name = document.getElementById('p_name').value.trim();
 
-    const item = {
-      timestamp: new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
-      company: '',
-      address: '',
-      main_delegate: '',
-      position: '',
-      phone: '',
-      email: ''
-    };
-
-    const lines = text.split('\n');
-    lines.forEach(l => {
-      const line = l.trim();
-      if (/doanh nghiệp/i.test(line)) item.company = line.split(/[:\t]/).pop().trim();
-      else if (/địa chỉ/i.test(line)) item.address = line.split(/[:\t]/).pop().trim();
-      else if (/đại biểu|họ và tên/i.test(line)) item.main_delegate = line.split(/[:\t]/).pop().trim();
-      else if (/chức vụ/i.test(line)) item.position = line.split(/[:\t]/).pop().trim();
-      else if (/điện thoại|sđt/i.test(line)) item.phone = line.split(/[:\t]/).pop().trim();
-      else if (/email/i.test(line)) item.email = line.split(/[:\t]/).pop().trim();
-    });
-
-    if (!item.company && !item.main_delegate) {
-      item.company = "Doanh nghiệp đăng ký qua Email";
-      item.main_delegate = lines[0] || "Đại biểu";
+    if (!company) {
+      alert('Vui lòng nhập Tên Doanh nghiệp / Đơn vị!');
+      document.getElementById('p_company').focus();
+      return;
+    }
+    if (!name) {
+      alert('Vui lòng nhập Họ và tên Đại biểu!');
+      document.getElementById('p_name').focus();
+      return;
     }
 
+    const item = {
+      id: Date.now(),
+      timestamp: new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
+      company: company,
+      address: document.getElementById('p_address').value.trim(),
+      main_delegate: name,
+      position: document.getElementById('p_pos').value.trim() || 'Đại diện',
+      phone: document.getElementById('p_phone').value.trim(),
+      email: document.getElementById('p_email').value.trim()
+    };
+
+    // Lưu cục bộ ngay lập tức
     const list = getList();
     list.unshift(item);
     setList(list);
     closePasteModal();
-    showToast("Đã nhận diện và thêm đại biểu vào danh sách!");
+    showToast(`Đã thêm: ${item.company}!`);
 
-    // Sync to cloud
+    // Đồng bộ lên Cloud
     try {
-      await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky", {
+      const res = await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(item)
       });
-    } catch(e) {}
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setList(data.data);
+      }
+      showToast("Đã đồng bộ vĩnh viễn lên Máy chủ Cloud!");
+    } catch(e) {
+      console.warn("Lỗi đồng bộ cloud:", e);
+    }
   }
 
   function exportToExcel() {

@@ -1,5 +1,5 @@
 // Vercel Serverless Function: /api/dang-ky
-// Tiep nhan va dong bo danh sach dang ky vao data/registrations.json tren GitHub
+// Tiep nhan, dong bo va quan ly danh sach dang ky vao data/registrations.json tren GitHub
 
 const REPO_OWNER = 'bidikid77-hub';
 const REPO_NAME = 'dnkhcn-gialai';
@@ -33,15 +33,37 @@ async function getRegistrations(token) {
   }
 }
 
-async function saveRegistrations(token, list, sha) {
+async function getFileSha(token) {
+  try {
+    const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
+    const headers = {
+      'User-Agent': 'Vercel-Serverless-Function',
+      'Accept': 'application/vnd.github.v3+json'
+    };
+    if (token) headers['Authorization'] = `token ${token}`;
+    const res = await fetch(url, { headers });
+    if (res.ok) {
+      const data = await res.json();
+      return data.sha;
+    }
+  } catch(e) {}
+  return null;
+}
+
+async function saveRegistrations(token, list, sha, customMsg) {
+  let fileSha = sha;
+  if (!fileSha && token) {
+    fileSha = await getFileSha(token);
+  }
+
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
   const contentBase64 = Buffer.from(JSON.stringify(list, null, 2), 'utf-8').toString('base64');
   const payload = {
-    message: `Cap nhat dang ky moi (${list.length} dai bieu)`,
+    message: customMsg || `Cap nhat dang ky (${list.length} dai bieu)`,
     content: contentBase64,
     branch: 'main'
   };
-  if (sha) payload.sha = sha;
+  if (fileSha) payload.sha = fileSha;
 
   const res = await fetch(url, {
     method: 'PUT',
@@ -59,7 +81,7 @@ async function saveRegistrations(token, list, sha) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
@@ -73,6 +95,51 @@ module.exports = async (req, res) => {
   if (req.method === 'GET') {
     const { list } = await getRegistrations(token);
     return res.status(200).json({ success: true, total: list.length, data: list });
+  }
+
+  // DELETE: Xoa mot dai bieu theo id
+  if (req.method === 'DELETE') {
+    try {
+      let id = req.query ? req.query.id : null;
+      if (!id && req.body) {
+        let body = req.body;
+        if (typeof body === 'string') {
+          try { body = JSON.parse(body); } catch(e) {}
+        }
+        id = body && body.id;
+      }
+      if (!id && req.url) {
+        try {
+          const parsed = new URL(req.url, 'http://localhost');
+          id = parsed.searchParams.get('id');
+        } catch(e) {}
+      }
+
+      if (!id) {
+        return res.status(400).json({ success: false, error: 'Thiếu tham số id cần xóa' });
+      }
+
+      const { list, sha } = await getRegistrations(token);
+      const targetId = String(id).trim();
+      const initialCount = list.length;
+      const newList = list.filter(item => String(item.id).trim() !== targetId);
+
+      let saved = false;
+      if (token) {
+        saved = await saveRegistrations(token, newList, sha, `Xoa dai bieu id ${id}`);
+      }
+
+      return res.status(200).json({
+        success: true,
+        saved: saved,
+        deletedId: id,
+        total: newList.length,
+        data: newList
+      });
+    } catch (err) {
+      console.error('Loi DELETE dang-ky:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
   }
 
   // POST: Nhan dang ky moi
@@ -96,7 +163,7 @@ module.exports = async (req, res) => {
       }
 
       const newEntry = {
-        id: Date.now(),
+        id: body.id || Date.now(),
         timestamp: body.timestamp || new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
         company: body.company,
         address: body.address || '',
@@ -114,7 +181,7 @@ module.exports = async (req, res) => {
       const { list, sha } = await getRegistrations(token);
       list.push(newEntry);
 
-      const saved = await saveRegistrations(token, list, sha);
+      const saved = await saveRegistrations(token, list, sha, `Them dang ky: ${newEntry.company}`);
 
       return res.status(200).json({
         success: true,
