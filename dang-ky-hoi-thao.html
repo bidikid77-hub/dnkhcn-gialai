@@ -129,22 +129,48 @@
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0, 75, 135, 0.3);
       transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
     .btn-submit:hover {
       opacity: 0.95;
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(0, 75, 135, 0.35);
     }
+    .btn-submit:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
     .support-footer {
       text-align: center;
       font-size: 13px;
       color: var(--text-muted);
       margin-top: 24px;
+      line-height: 1.8;
     }
     .support-footer a {
       color: var(--primary);
       text-decoration: none;
       font-weight: 600;
+    }
+    .admin-link {
+      display: inline-block;
+      margin-top: 10px;
+      color: #94a3b8;
+      font-size: 12px;
+      text-decoration: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #e2e8f0;
+      transition: color 0.2s;
+    }
+    .admin-link:hover {
+      color: var(--primary);
+      background: #cbd5e1;
     }
     /* Modal */
     .modal {
@@ -262,13 +288,16 @@
     </div>
 
     <!-- Submit Button -->
-    <button type="submit" class="btn-submit">XÁC NHẬN GỬI ĐĂNG KÝ THAM DỰ ➔</button>
+    <button type="submit" id="submitBtn" class="btn-submit">
+      <span>XÁC NHẬN GỬI ĐĂNG KÝ THAM DỰ</span> ➔
+    </button>
   </form>
 
   <!-- Support Footer -->
   <div class="support-footer">
     Ban Tổ chức Hội thảo — Sở Khoa học và Công nghệ tỉnh Gia Lai<br>
-    Hỗ trợ kỹ thuật & đăng ký: <a href="tel:0392220820">0392.220820</a> (Đào Vũ Nguyên)
+    Hỗ trợ kỹ thuật & đăng ký: <a href="tel:0392220820">0392.220820</a> (Đào Vũ Nguyên)<br>
+    <a href="./quan-ly-dang-ky.html" class="admin-link">🔒 Dành cho Ban Tổ chức: Xem & Xuất file Excel</a>
   </div>
 </div>
 
@@ -285,22 +314,59 @@
 </div>
 
 <script>
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳ Đang gửi thông tin về Ban Tổ chức...</span>';
+
     const form = document.getElementById('regForm');
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
-    data.timestamp = new Date().toISOString();
+    const nowStr = new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+    data.timestamp = nowStr;
 
-    // Store in local list
-    let list = JSON.parse(localStorage.getItem('gl2026_registrations') || '[]');
-    list.push(data);
-    localStorage.setItem('gl2026_registrations', JSON.stringify(list));
+    // 1. Lưu vào danh sách LocalStorage
+    try {
+      let list = JSON.parse(localStorage.getItem('gl2026_registrations') || '[]');
+      list.push(data);
+      localStorage.setItem('gl2026_registrations', JSON.stringify(list));
+    } catch (err) {
+      console.warn("Storage error", err);
+    }
 
-    // Show modal
+    // 2. Gửi email tự động về hòm thư bidikid77@gmail.com qua FormSubmit
+    try {
+      await fetch("https://formsubmit.co/ajax/bidikid77@gmail.com", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          "Thời gian gửi": nowStr,
+          "Tên doanh nghiệp / Đơn vị": data.company,
+          "Địa chỉ": data.address || "(Không ghi)",
+          "Họ và tên đại biểu": data.main_delegate,
+          "Chức vụ": data.position,
+          "Số điện thoại": data.phone,
+          "Email liên hệ": data.email,
+          "_subject": "[HỘI THẢO KH&CN GIA LAI 2026] Đăng ký mới: " + data.company + " - " + data.main_delegate,
+          "_template": "table"
+        })
+      });
+    } catch (err) {
+      console.warn("Email notify error", err);
+    }
+
+    // 3. Hiển thị thông báo thành công
+    btn.disabled = false;
+    btn.innerHTML = '<span>XÁC NHẬN GỬI ĐĂNG KÝ THAM DỰ</span> ➔';
+
     document.getElementById('modalDesc').innerHTML = `
       Cảm ơn đại biểu <strong>${data.main_delegate}</strong> (${data.company})!<br><br>
-      Ban Tổ chức đã ghi nhận thông tin đăng ký tham dự Hội thảo ngày 27/11/2026 tại Khách sạn Hải Âu.
+      Ban Tổ chức đã ghi nhận thông tin đăng ký tham dự Hội thảo ngày 27/11/2026 tại Khách sạn Hải Âu.<br>
+      Thông tin đã được chuyển thẳng tới hòm thư Ban Tổ chức.
     `;
     document.getElementById('successModal').classList.add('active');
   }
