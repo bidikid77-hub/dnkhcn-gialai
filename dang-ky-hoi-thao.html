@@ -326,16 +326,18 @@
     const nowStr = new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
     data.timestamp = nowStr;
 
-    // 1. Lưu vào danh sách LocalStorage
+    // 1. Dong bo len May chu Cloud Database tap trung
     try {
-      let list = JSON.parse(localStorage.getItem('gl2026_registrations') || '[]');
-      list.push(data);
-      localStorage.setItem('gl2026_registrations', JSON.stringify(list));
+      await fetch("https://dnkhcn-gialai-web.vercel.app/api/dang-ky", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
     } catch (err) {
-      console.warn("Storage error", err);
+      console.warn("Cloud save error:", err);
     }
 
-    // 2. Gửi email tự động về hòm thư bidikid77@gmail.com qua FormSubmit
+    // 2. Gui email thong bao tuc thi ve bidikid77@gmail.com qua FormSubmit
     try {
       await fetch("https://formsubmit.co/ajax/bidikid77@gmail.com", {
         method: "POST",
@@ -358,6 +360,13 @@
     } catch (err) {
       console.warn("Email notify error", err);
     }
+
+    // 3. Luu du phong vao LocalStorage
+    try {
+      let list = JSON.parse(localStorage.getItem('gl2026_registrations') || '[]');
+      list.push(data);
+      localStorage.setItem('gl2026_registrations', JSON.stringify(list));
+    } catch (e) {}
 
     // 3. Hiển thị thông báo thành công
     btn.disabled = false;
