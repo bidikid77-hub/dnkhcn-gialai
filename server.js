@@ -22,7 +22,8 @@ const ALLOWED_STATIC = new Set([
   'manifest.json',
   'sw.js',
   'xlsx.full.min.js',
-  'dang-ky-hoi-thao.html'
+  'dang-ky-hoi-thao.html',
+  'quan-ly-dang-ky.html'
 ]);
 
 const server = http.createServer(async (req, res) => {
@@ -87,6 +88,8 @@ const server = http.createServer(async (req, res) => {
     pathname = 'index.html';
   } else if (pathname === '/dang-ky' || pathname === '/dang-ky-hoi-thao') {
     pathname = 'dang-ky-hoi-thao.html';
+  } else if (pathname === '/quan-ly-dang-ky') {
+    pathname = 'quan-ly-dang-ky.html';
   } else {
     pathname = pathname.replace(/^\/+/, '');
   }
