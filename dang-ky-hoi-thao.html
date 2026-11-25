@@ -250,15 +250,15 @@
   </div>
 
   <!-- Form -->
-  <form id="regForm" onsubmit="handleSubmit(event)">
+  <form id="regForm" onsubmit="handleSubmit(event)" novalidate>
     <div class="form-section">
       <div class="section-header">
         <span>🏢</span> THÔNG TIN DOANH NGHIỆP / ĐƠN VỊ
       </div>
 
       <div class="form-group">
-        <label class="form-label">1. Tên doanh nghiệp/đơn vị <span class="req">*</span></label>
-        <input type="text" name="company" class="form-control" placeholder="Nhập tên đầy đủ của công ty / đơn vị" required>
+        <label class="form-label">1. Tên doanh nghiệp/đơn vị</label>
+        <input type="text" name="company" class="form-control" placeholder="Nhập tên đầy đủ của công ty / đơn vị">
       </div>
 
       <div class="form-group">
@@ -267,23 +267,23 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">3. Họ và tên đại biểu tham dự <span class="req">*</span></label>
-        <input type="text" name="main_delegate" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" required>
+        <label class="form-label">3. Họ và tên đại biểu tham dự</label>
+        <input type="text" name="main_delegate" class="form-control" placeholder="Ví dụ: Nguyễn Văn A">
       </div>
 
       <div class="form-group">
-        <label class="form-label">4. Chức vụ <span class="req">*</span></label>
-        <input type="text" name="position" class="form-control" placeholder="Ví dụ: Giám đốc, Phó Giám đốc, Trưởng phòng..." required>
+        <label class="form-label">4. Chức vụ</label>
+        <input type="text" name="position" class="form-control" placeholder="Ví dụ: Giám đốc, Phó Giám đốc, Trưởng phòng...">
       </div>
 
       <div class="form-group">
-        <label class="form-label">5. Số điện thoại liên hệ <span class="req">*</span></label>
-        <input type="tel" name="phone" class="form-control" placeholder="Ví dụ: 0912345678" required pattern="[0-9]{10,11}">
+        <label class="form-label">5. Số điện thoại liên hệ</label>
+        <input type="tel" name="phone" class="form-control" placeholder="Ví dụ: 0912345678">
       </div>
 
       <div class="form-group">
-        <label class="form-label">6. Địa chỉ email liên hệ <span class="req">*</span></label>
-        <input type="email" name="email" class="form-control" placeholder="Ví dụ: contact@doanhnghiep.vn" required>
+        <label class="form-label">6. Địa chỉ email liên hệ</label>
+        <input type="text" name="email" class="form-control" placeholder="Ví dụ: contact@doanhnghiep.vn">
       </div>
     </div>
 
